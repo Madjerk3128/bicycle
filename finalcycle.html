@@ -915,9 +915,9 @@
             const url = uploadedFiles[file.toLowerCase()] || (BASE_URL + file);
             loadPart(url, slot, color);
 
-            // Show Fix button after 2+ parts placed
+            // Show Fix button after step 2 (frame + fork placed)
             setTimeout(() => {
-                if (allParts.length >= 2) {
+                if (getCurrentStep() >= 2) {
                     document.getElementById('fix-btn').style.display = 'block';
                 }
             }, 1500);
@@ -1218,7 +1218,9 @@
         // ── Drag controls (in-scene repositioning) ───
         function rebuildDrag() {
             if (dragControls) dragControls.dispose();
-            dragControls = new THREE.DragControls(allParts, camera, renderer.domElement);
+            // Exclude frame from dragging — frame is fixed in place
+            const draggable = allParts.filter(m => m.userData.slot !== 'frame');
+            dragControls = new THREE.DragControls(draggable, camera, renderer.domElement);
             dragControls.addEventListener('dragstart', () => { if (!isLocked) orbit.enabled = false; });
             dragControls.addEventListener('drag', e => { if (!isLocked) checkTrash(e.object); });
             dragControls.addEventListener('dragend', e => { orbit.enabled = true; maybeDelete(e.object); });
