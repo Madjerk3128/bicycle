@@ -1075,65 +1075,45 @@
                     const targetSize = def.targetFrac * refLen;
                     mesh.scale.setScalar(targetSize / longest);
 
-                    // Orientation
-                    applyOrientation(mesh, geo, def, slot);
-
-                    // Snap position inside frame bbox
-                    const snapX = frameBox.min.x + def.fx * fbSize.x;
-                    const snapY = frameBox.min.y + def.fy * fbSize.y;
-                    const snapZ = frameBox.min.z + def.fz * fbSize.z;
+                    // Place at CENTER — Fix button will snap to correct position
+                    mesh.position.set(0, 0, 0);
 
                     // ── Pedal: spawn mirrored pair (×2) ─────────────────────
                     if (slot === 'pedalCrank') {
-                        const zOff = fbSize.z * 0.12;
-                        mesh.position.set(snapX, snapY, snapZ + zOff);
-                        mesh.rotation.y = Math.PI / 2;
+                        mesh.position.set(0, 0, 20);
                         mesh.userData.slot = slot;
                         scene.add(mesh); allParts.push(mesh);
 
                         const meshL = new THREE.Mesh(geo, mat.clone());
                         meshL.scale.setScalar(targetSize / longest);
-                        meshL.position.set(snapX, snapY, snapZ - zOff);
-                        meshL.rotation.y = -Math.PI / 2;
+                        meshL.position.set(0, 0, -20);
                         meshL.userData.slot = slot;
                         scene.add(meshL); allParts.push(meshL);
 
-                        setStatus('Pedal pair snapped ✓ — drag to fine-tune');
+                        setStatus('Pedal pair added ✓ — click Fix to position');
                         rebuildDrag(); return;
                     }
 
-                    // ── Tire Lever: spawn ×2 (front + back) ──────────────────
-                    if (slot === 'backTireBolt') {
-                        const leverDef = SLOT_DEF.backTireBolt;
-                        const leverSize = leverDef.targetFrac * refLen;
-                        // Back lever (near back wheel)
-                        mesh.position.set(snapX, snapY, snapZ);
+                    // ── Single-spawn parts (front/back tire levers, bush, etc) ──
+                    if (slot === 'frontTireLever' || slot === 'backTireLever') {
+                        mesh.position.set(0, 0, 0);
                         mesh.userData.slot = slot;
                         scene.add(mesh); allParts.push(mesh);
-                        // Front lever (near front wheel)
-                        const snapXF = frameBox.min.x + 0.05 * fbSize.x;
-                        const meshF = new THREE.Mesh(geo, mat.clone());
-                        meshF.scale.setScalar(leverSize / longest);
-                        meshF.position.set(snapXF, snapY, snapZ);
-                        meshF.userData.slot = 'tireBolt';
-                        scene.add(meshF); allParts.push(meshF);
-                        setStatus('Tire levers (×2) snapped ✓ — drag to fine-tune');
+                        setStatus('Tire lever added ✓ — click Fix to position');
                         rebuildDrag(); return;
                     }
 
-                    // ── Handlebar Bush: spawn ×1, vertical (upright) orientation ─────────
                     if (slot === 'tireBush') {
-                        mesh.position.set(snapX, snapY, snapZ);
-                        mesh.rotation.set(-Math.PI / 10, 0, 0); // forward lean to fit head tube
+                        mesh.position.set(0, 0, 0);
                         mesh.userData.slot = slot;
                         scene.add(mesh); allParts.push(mesh);
-                        setStatus('Handlebar bush snapped ✓ — drag to fine-tune');
+                        setStatus('Handlebar bush added ✓ — click Fix to position');
                         rebuildDrag(); return;
                     }
                     // ─────────────────────────────────────────────────────────
 
-                    mesh.position.set(snapX, snapY, snapZ);
-                    setStatus('Part snapped ✓ — drag to fine-tune');
+                    mesh.position.set(0, 0, 0);
+                    setStatus('Part added ✓ — click Fix to position');
                 }
 
                 mesh.userData.slot = slot;
