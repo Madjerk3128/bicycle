@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bicycle Assembler</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background: #0a1220;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            color: #e0eaff;
+        }
+
+        #sidebar {
+            width: 240px;
+            min-width: 240px;
+            background: linear-gradient(180deg, #0d1b2e 0%, #111e33 100%);
+            border-right: 1.5px solid #1e3a5f;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px;
+            gap: 6px;
+            overflow: hidden;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        #parts-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 2px;
+        }
+
+        #parts-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #parts-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #parts-list::-webkit-scrollbar-thumb {
+            background: #1e3a5f;
+            border-radius: 4px;
+        }
+
+        #sidebar h2 {
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+            color: #4a8ecb;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            flex-shrink: 0;
+        }
+
+        #upload-btn {
+            flex-shrink: 0;
+        }
+
+        #upload-btn {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        #upload-btn:hover {
+            background: #1d4ed8;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .part-item {
+            background: rgba(30, 58, 95, 0.6);
+            border: 1.5px solid #1e3a5f;
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: grab;
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: #7ab8f5;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, box-shadow 0.15s, transform 0.12s;
+            user-select: none;
+        }
+
+        .part-item:hover {
+            background: rgba(37, 99, 235, 0.25);
+            box-shadow: 0 2px 12px rgba(74, 142, 203, 0.3);
+            transform: translateY(-1px);
+        }
+
+        #trash-zone {
+            flex-shrink: 0;
+            height: 72px;
+            border: 2px dashed #f87171;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f87171;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        #trash-zone.hot {
+            background: rgba(248, 113, 113, 0.15);
+        }
+
+        #viewport {
+            flex: 1;
+            position: relative;
+            background: #0f1923;
+        }
+
+        #viewport canvas {
+            display: block;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #status {
+            background: rgba(13, 25, 48, 0.92);
+            border: 1.5px solid #1e3a5f;
+            border-radius: 20px;
+            padding: 6px 18px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            color: #7ab8f5;
+            box-shadow: 0 2px 16px rgba(74, 142, 203, 0.2);
+        }
+
+        #lock-btn {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-weight: 700;
+            font-size: 0.73rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+
+        #lock-btn.locked {
+            background: #22c55e;
+        }
+
+        #autofix-btn {
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s, transform 0.1s;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+        }
+
+        #autofix-btn:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+        #autofix-btn:active {
+            transform: translateY(0);
+        }
+
+        #hint {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(13, 25, 48, 0.88);
+            border: 1px solid #1e3a5f;
+            border-radius: 8px;
+            padding: 7px 16px;
+            font-size: 0.7rem;
+            color: #7ab8f5;
+            pointer-events: none;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+            white-space: nowrap;
+        }
+
+        #frame-hint {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 20, 0, 0.85);
+            border: 1px solid #7a5200;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.7rem;
+            color: #f5c842;
+            pointer-events: none;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ── Duplicate-part toast ─────────────────────────────── */
+        #dup-toast {
+            display: none;
+            position: absolute;
+            top: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(120, 53, 15, 0.97);
+            border: 1.5px solid #f59e0b;
+            border-radius: 10px;
+            padding: 10px 22px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #fde68a;
+            z-index: 200;
+            white-space: nowrap;
+            box-shadow: 0 4px 24px rgba(245, 158, 11, 0.35);
+            pointer-events: none;
+            animation: toastSlide 0.22s ease;
+        }
+
+        @keyframes toastSlide {
+            from {
+                opacity: 0;
+                top: 100px;
+            }
+
+            to {
+                opacity: 1;
+                top: 110px;
+            }
+        }
+
+        #missing-alert {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 5, 5, 0.97);
+            border: 2px solid #ef4444;
+            border-radius: 14px;
+            padding: 22px 32px;
+            z-index: 100;
+            text-align: center;
+            box-shadow: 0 8px 40px rgba(239, 68, 68, 0.4);
+            min-width: 300px;
+            max-width: 480px;
+            animation: fadeInPop 0.25s ease;
+        }
+
+        @keyframes fadeInPop {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -48%) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        #missing-alert h3 {
+            color: #ef4444;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        #missing-alert p {
+            color: #fca5a5;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        #missing-alert .missing-list {
+            color: #fde68a;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            line-height: 1.7;
+        }
+
+        #missing-alert button {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 22px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+
+        #missing-alert button:hover {
+            background: #dc2626;
+        }
+
+        /* ── Instructions Panel ──────────────────────────── */
+        #instructions {
+            width: 260px;
+            min-width: 260px;
+            background: linear-gradient(180deg, #0d1b2e 0%, #111e33 100%);
+            border-left: 1.5px solid #1e3a5f;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px;
+            gap: 6px;
+            overflow: hidden;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        #instructions h2 {
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+            color: #a78bfa;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            flex-shrink: 0;
+        }
+        #instr-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding-right: 2px;
+        }
+        #instr-list::-webkit-scrollbar { width: 4px; }
+        #instr-list::-webkit-scrollbar-track { background: transparent; }
+        #instr-list::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 4px; }
+        .instr-item {
+            background: rgba(30,58,95,0.25);
+            border: 1.5px solid #1e3a5f44;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.67rem;
+            font-weight: 500;
+            color: #3a5a7a;
+            line-height: 1.45;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            user-select: none;
+        }
+        .instr-item:hover { color: #7ab8f5; border-color: #2563eb55; background: rgba(37,99,235,0.1); }
+        .instr-item.active {
+            background: rgba(37,99,235,0.18);
+            border: 1.5px solid #3b82f6;
+            color: #e0eaff;
+            font-weight: 600;
+            animation: instrPulse 2s ease-in-out infinite;
+        }
+        .instr-item.drag-hl {
+            background: rgba(124,58,237,0.28);
+            border: 1.5px solid #7c3aed;
+            color: #f0e6ff;
+            font-weight: 600;
+            transform: scale(1.02);
+            box-shadow: 0 0 18px rgba(124,58,237,0.45);
+        }
+        .instr-item.done {
+            background: rgba(34,197,94,0.08);
+            border: 1.5px solid #22c55e44;
+            color: #4ade80;
+        }
+        .instr-item.done::after {
+            content: '✓';
+            position: absolute;
+            right: 9px; top: 50%;
+            transform: translateY(-50%);
+            color: #22c55e;
+            font-weight: 700;
+            font-size: 0.82rem;
+        }
+        @keyframes instrPulse {
+            0%,100% { box-shadow: 0 0 8px rgba(59,130,246,0.25); }
+            50%      { box-shadow: 0 0 20px rgba(59,130,246,0.6); }
+        }
+        #instr-footer {
+            flex-shrink: 0;
+            background: rgba(30,58,95,0.35);
+            border: 1px solid #1e3a5f;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.67rem;
+            color: #7ab8f5;
+            font-weight: 600;
+            text-align: center;
+        }
+        #instr-bar-wrap { margin-top: 5px; height: 4px; background: #0d2137; border-radius: 4px; overflow: hidden; }
+        #instr-bar-fill { height: 100%; background: linear-gradient(90deg,#3b82f6,#7c3aed); border-radius: 4px; transition: width 0.4s ease; width: 0%; }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <h2>🚲 Components</h2>
+        <button id="upload-btn" onclick="document.getElementById('file-input').click()">
+            📂 Upload STL Files
+        </button>
+        <input type="file" id="file-input" multiple accept=".stl,.STL" onchange="onFilesUploaded(event)">
+
+        <div id="parts-list">
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl files/1. Frame.STL','frame',0xcc2200)">
+                🔩 Frame</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl files/4. Rim with Tire.STL','frontWheel',0x000000)">⭕ Front Wheel</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl files/5. Rim with Tire.STL','backWheel',0x000000)">⭕ Back Wheel</div>
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl files/7. Sadle.STL','seat',0x000000)">
+                🪑 Saddle</div>
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl files/2. Fork.STL','fork',0xc0c0c0)">🍴
+                Fork</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl files/3. Handlebar.STL','handlebar',0xc0c0c0)">🎛️ Handlebar</div>
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl files/Chain.STL','chain',0xd4af37)">⛓️
+                Chain</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl files/11. back tire liver .STL','backTireBolt',0xc0c0c0)">🔧 Back &amp;
+                Front Tire Lever ×2</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl files/6. Sprocket.STL','pedalSprocket',0xd4af37)">⚙️ Sprocket</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl files/8. Pedal.STL','pedalCrank',0xc0c0c0)">🦵 Pedal ×2</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl files/tire bushes.STL','tireBush',0xc0c0c0)">🔩 Handlebar Bushes</div>
+        </div>
+        <!-- ↑ scroll inside this list if items overflow -->
+
+        <button id="autofix-btn" onclick="autoFix()">⚡ AutoFix Assembly</button>
+
+        <div id="trash-zone">🗑️ DRAG HERE TO DELETE</div>
+    </div>
+
+    <div id="viewport">
+        <div id="hint">Drag parts from panel · Scroll to zoom · Right-click drag = rotate part</div>
+        <div id="frame-hint">⚠️ Add the Frame first — other parts snap relative to it</div>
+        <div id="dup-toast">⚠️ <span id="dup-toast-msg"></span></div>
+        <div id="missing-alert">
+            <h3>⚠️ Missing Parts Detected</h3>
+            <p>Please add all required parts before running AutoFix:</p>
+            <div class="missing-list" id="missing-list-text"></div>
+            <button onclick="document.getElementById('missing-alert').style.display='none'">Got it — I'll add
+                them</button>
+        </div>
+        <div id="ui-overlay">
+            <div id="status">READY — drop Frame first</div>
+            <button id="lock-btn" onclick="toggleLock()">Lock Assembly</button>
+        </div>
+    </div>
+
+    <!-- ── Instructions Panel (right side) ── -->
+    <div id="instructions">
+        <h2>📋 Instructions</h2>
+        <div id="instr-list"></div>
+        <div id="instr-footer">
+            <span id="instr-prog-text">Step 0 / 11</span>
+            <div id="instr-bar-wrap"><div id="instr-bar-fill"></div></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/DragControls.js"></script>
+    <script>
+        // ─────────────────────────────────────────────
+        // ── Instructions System ──────────────────────
+        const INSTR_DEFS = [
+            { slot: 'frame',         file: 'stl files/1. Frame.STL',             color: 0xcc2200 },
+            { slot: 'frontWheel',    file: 'stl files/4. Rim with Tire.STL',     color: 0x000000 },
+            { slot: 'backWheel',     file: 'stl files/5. Rim with Tire.STL',     color: 0x000000 },
+            { slot: 'seat',          file: 'stl files/7. Sadle.STL',             color: 0x000000 },
+            { slot: 'fork',          file: 'stl files/2. Fork.STL',              color: 0xc0c0c0 },
+            { slot: 'handlebar',     file: 'stl files/3. Handlebar.STL',         color: 0xc0c0c0 },
+            { slot: 'chain',         file: 'stl files/Chain.STL',                color: 0xd4af37 },
+            { slot: 'backTireBolt',  file: 'stl files/11. back tire liver .STL', color: 0xc0c0c0 },
+            { slot: 'pedalSprocket', file: 'stl files/6. Sprocket.STL',          color: 0xd4af37 },
+            { slot: 'pedalCrank',    file: 'stl files/8. Pedal.STL',             color: 0xc0c0c0 },
+            { slot: 'tireBush',      file: 'stl files/tire bushes.STL',          color: 0xc0c0c0 },
+        ];
+        const INSTR_TEXT = [
+            '1. Import the frame onto the screen.',
+            '2. Drag the front wheel and place it at the front side of the frame.',
+            '3. Drag the back wheel and place it at the back side of the frame.',
+            '4. Drag the saddle/seat and place it into the saddle hole located at the center of the frame.',
+            '5. Drag the fork and place it into the fork hole located at the front of the frame.',
+            '6. Drag the handlebar and place it into the handlebar hole located at the front of the frame.',
+            '7. Drag the chain and place it around the back tire and near the sprocket hole located at the center of the frame.',
+            '8. Drag the front and back levers and place them into their respective tire holes located at the front and back of the frame.',
+            '9. Drag the sprocket and place it into the sprocket hole located at the center of the frame.',
+            '10. Drag the pedals and attach them to the sprocket lever present on the sprocket.',
+            '11. Drag the handlebar bush and seal the gap between the handlebar and the frame.',
+        ];
+
+        let _instrDragTimer = null;
+
+        function buildInstructionPanel() {
+            const list = document.getElementById('instr-list');
+            list.innerHTML = '';
+            INSTR_DEFS.forEach((def, i) => {
+                const div = document.createElement('div');
+                div.className = 'instr-item';
+                div.id = 'instr-' + def.slot;
+                div.textContent = INSTR_TEXT[i];
+                div.addEventListener('click', () => onInstrClick(def, i));
+                list.appendChild(div);
+            });
+            updateInstructions();
+        }
+
+        function updateInstructions() {
+            const present = new Set(allParts.map(m => m.userData.slot));
+
+            // When AutoFix assembly is loaded (slot='assembly'), all steps are complete
+            if (present.has('assembly')) {
+                INSTR_DEFS.forEach(def => {
+                    const el = document.getElementById('instr-' + def.slot);
+                    if (el) el.className = 'instr-item done';
+                });
+                const pt = document.getElementById('instr-prog-text');
+                const pf = document.getElementById('instr-bar-fill');
+                if (pt) pt.textContent = `All ${INSTR_DEFS.length} / ${INSTR_DEFS.length} complete ✓`;
+                if (pf) pf.style.width = '100%';
+                return;
+            }
+
+            let firstActive = -1, done = 0;
+            INSTR_DEFS.forEach((def, i) => {
+                const el = document.getElementById('instr-' + def.slot);
+                if (!el) return;
+                const isDone = present.has(def.slot) ||
+                    (def.slot === 'backTireBolt' && (present.has('backTireBolt') || present.has('tireBolt')));
+                if (isDone) {
+                    el.className = 'instr-item done'; done++;
+                } else if (firstActive === -1) {
+                    firstActive = i;
+                    el.className = 'instr-item active';
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    el.className = 'instr-item';
+                }
+            });
+            const pct = Math.round(done / INSTR_DEFS.length * 100);
+            const pt = document.getElementById('instr-prog-text');
+            const pf = document.getElementById('instr-bar-fill');
+            if (pt) pt.textContent = `Step ${done} / ${INSTR_DEFS.length} complete`;
+            if (pf) pf.style.width = pct + '%';
+        }
+
+        function instrHighlightDrag(slot) {
+            document.querySelectorAll('.instr-item.drag-hl').forEach(el => el.classList.remove('drag-hl'));
+            const el = document.getElementById('instr-' + slot);
+            if (el && !el.classList.contains('done')) {
+                el.classList.add('drag-hl');
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                clearTimeout(_instrDragTimer);
+                _instrDragTimer = setTimeout(() => instrClearDrag(), 5000);
+            }
+        }
+
+        function instrClearDrag() {
+            clearTimeout(_instrDragTimer);
+            document.querySelectorAll('.instr-item.drag-hl').forEach(el => el.classList.remove('drag-hl'));
+            updateInstructions();
+        }
+
+        function onInstrClick(def, idx) {
+            // Frame can be placed without pre-condition; all others need the frame first
+            if (def.slot !== 'frame' && !frameBox) {
+                setStatus('⚠️ Place the Frame first!');
+                const fe = document.getElementById('instr-frame');
+                if (fe) { fe.classList.add('drag-hl'); setTimeout(() => fe.classList.remove('drag-hl'), 1400); }
+                return;
+            }
+            const present = new Set(allParts.map(m => m.userData.slot));
+            if (present.has(def.slot) || (def.slot === 'backTireBolt' && (present.has('backTireBolt') || present.has('tireBolt')))) {
+                setStatus('⚠️ Already added: ' + INSTR_TEXT[idx].split('.')[0]);
+                return;
+            }
+            const fname = def.file.split('/').pop().toLowerCase();
+            const url = uploadedFiles[fname] || def.file;
+            loadPart(url, def.slot, def.color);
+            instrHighlightDrag(def.slot);
+        }
+
+        // ─────────────────────────────────────────────
+        // TARGET WORLD SIZE FOR FRAME (in Three.js units)
+        // Everything else scales relative to this.
+        const FRAME_TARGET = 400; // frame longest axis = 400 units (enlarged for visibility)
+
+
+        // Once frame is loaded we fill these in:
+        let frameBox = null;   // THREE.Box3 in world space (after scale applied)
+        let frameScale = 1;    // scale factor applied to frame mesh
+
+        // Snap definitions as FRACTIONS of frame bounding box.
+        // fx/fy/fz = fraction along each axis (0=min, 0.5=center, 1=max)
+        // These represent logical bicycle positions.
+        // fx/fy/fz  : snap position as fraction of frame bounding box (0=min edge, 1=max edge)
+        // orient    : 'wheel' = auto-detect thin axis; 'none' = use rx/ry as-is
+        // targetFrac: part's longest axis = this fraction × frame's longest axis
+        //
+        // FRAME ORIENTATION (observed from screenshots):
+        //   The fork/front end of the frame sits at the LOW-X side (frameBox.min.x)
+        //   The rear triangle sits at the HIGH-X side (frameBox.max.x)
+        const SLOT_DEF = {
+            // 1. Frame: small anticlockwise tilt via rz
+            frame: { fx: 0.5, fy: 0.5, fz: 0.5, orient: 'none', rx: 0, ry: 0, rz: -Math.PI / 14, targetFrac: 1.0 },
+            // Wheels: auto-detect thin axis; 2. backWheel extraRy flipped 180° for correct orientation
+            frontWheel: { fx: 0.05, fy: 0.10, fz: 0.5, orient: 'wheel', extraRy: Math.PI / 2, targetFrac: 0.44 },
+            backWheel: { fx: 0.95, fy: 0.10, fz: 0.5, orient: 'wheel', extraRy: -Math.PI / 2, targetFrac: 0.44 },
+            // 3. Seat: ry:PI flips it front-facing (about-turn horizontally)
+            // Saddle: very light anticlockwise tilt from horizontal
+            seat: { fx: 0.78, fy: 1.05, fz: 0.5, orient: 'none', rx: -Math.PI / 22, ry: Math.PI, targetFrac: 0.21 },
+            fork: { fx: 0.10, fy: 0.58, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.34 },
+            // Handlebar: scale increased
+            handlebar: { fx: 0.10, fy: 0.88, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.36 },
+            // Chain: vertical about-turn (ry:-PI/2)
+            chain: { fx: 0.50, fy: 0.32, fz: 0.5, orient: 'none', rx: 0, ry: -Math.PI / 2, targetFrac: 0.48 },
+            // 8. Pedal: scale decreased
+            pedalCrank: { fx: 0.50, fy: 0.10, fz: 0.58, orient: 'none', rx: 0, ry: Math.PI / 2, targetFrac: 0.11 },
+            // 7. Sprocket: scale increased
+            pedalSprocket: { fx: 0.50, fy: 0.08, fz: 0.5, orient: 'none', rx: Math.PI / 2, ry: 0, targetFrac: 0.30 },
+            // 6. Tire levers: scale increased
+            backTireBolt: { fx: 0.95, fy: 0.10, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.14 },
+            tireBolt: { fx: 0.05, fy: 0.10, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.14 },
+            // Handlebar bushes: 1 spawned, forward lean to fit head tube
+            tireBush: { fx: 0.10, fy: 0.88, fz: 0.5, orient: 'none', rx: -Math.PI / 10, ry: 0, rz: 0, targetFrac: 0.04 },
+        };
+
+        // ─────────────────────────────────────────────
+        let scene, camera, renderer, orbit, raycaster, mouse;
+        let isLocked = false, allParts = [];
+        let dragControls;
+        const uploadedFiles = {};
+
+        // Assembly auto-rotation state
+        let assemblyRotating = false;
+        let assemblyGroup = null;
+
+        function init() {
+            scene = new THREE.Scene();
+            // Premium gradient-like dark background
+            scene.background = new THREE.Color(0x0f1923);
+            scene.fog = new THREE.FogExp2(0x0f1923, 0.0008);
+
+            // Enhanced grid with dark theme
+            const grid = new THREE.GridHelper(1600, 40, 0x1e3a5f, 0x0d2137);
+            grid.position.y = -220;
+            scene.add(grid);
+
+            const W = window.innerWidth - 500, H = window.innerHeight;
+            camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 30000);
+            camera.position.set(0, 150, 800);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(W, H);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            // Premium tone mapping for photorealistic look
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('viewport').appendChild(renderer.domElement);
+
+            // Rich multi-light setup
+            const ambient = new THREE.AmbientLight(0x334466, 0.6);
+            scene.add(ambient);
+
+            // Key light (warm sun)
+            const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+            sun.position.set(300, 600, 400);
+            sun.castShadow = true;
+            sun.shadow.mapSize.width = 2048;
+            sun.shadow.mapSize.height = 2048;
+            sun.shadow.camera.near = 0.5;
+            sun.shadow.camera.far = 3000;
+            sun.shadow.camera.left = -800;
+            sun.shadow.camera.right = 800;
+            sun.shadow.camera.top = 800;
+            sun.shadow.camera.bottom = -800;
+            sun.shadow.bias = -0.001;
+            scene.add(sun);
+
+            // Cool fill light from left
+            const fill = new THREE.DirectionalLight(0x4488cc, 0.7);
+            fill.position.set(-400, 200, -200);
+            scene.add(fill);
+
+            // Rim light from behind (creates silhouette)
+            const rim = new THREE.DirectionalLight(0x88aaff, 0.5);
+            rim.position.set(0, -100, -500);
+            scene.add(rim);
+
+            // Ground bounce light
+            const bounce = new THREE.HemisphereLight(0x334466, 0x112233, 0.4);
+            scene.add(bounce);
+
+            orbit = new THREE.OrbitControls(camera, renderer.domElement);
+            orbit.enableDamping = true; orbit.dampingFactor = 0.06;
+            orbit.minDistance = 100;
+            orbit.maxDistance = 5000;
+            orbit.target.set(0, 0, 0);
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            const vp = document.getElementById('viewport');
+            vp.addEventListener('dragover', e => e.preventDefault());
+            vp.addEventListener('drop', onDrop);
+
+            const trash = document.getElementById('trash-zone');
+            trash.addEventListener('dragover', e => { e.preventDefault(); trash.classList.add('hot'); });
+            trash.addEventListener('dragleave', () => trash.classList.remove('hot'));
+            trash.addEventListener('drop', e => { e.preventDefault(); trash.classList.remove('hot'); });
+
+            window.addEventListener('resize', onResize);
+            window.addEventListener('mousemove', onRightDrag);
+
+            rebuildDrag();
+            buildInstructionPanel();
+            animate();
+        }
+
+        // ── Drag data from sidebar ───────────────────
+        function drag(ev, file, slot, color) {
+            ev.dataTransfer.setData("text/plain", JSON.stringify({ file, slot, color }));
+            instrHighlightDrag(slot);
+            // Clear drag highlight when drag ends (drop or cancel)
+            ev.target.addEventListener('dragend', instrClearDrag, { once: true });
+        }
+
+        // ── Duplicate-part toast helper ───────────────
+        let _dupToastTimer = null;
+        function showDuplicateToast(partName) {
+            const toast = document.getElementById('dup-toast');
+            document.getElementById('dup-toast-msg').textContent =
+                partName + ' is already added! Delete it first to replace.';
+            toast.style.display = 'block';
+            clearTimeout(_dupToastTimer);
+            _dupToastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // Slots where duplicates are always blocked (single-instance parts)
+        const SINGLE_SLOTS = new Set([
+            'frame', 'frontWheel', 'backWheel', 'seat', 'fork',
+            'handlebar', 'chain', 'pedalCrank', 'pedalSprocket', 'backTireBolt', 'tireBush'
+        ]);
+
+        // Friendly display names for the toast
+        const PART_DISPLAY_NAME = {
+            frame: 'Frame', frontWheel: 'Front Wheel', backWheel: 'Back Wheel',
+            seat: 'Saddle', fork: 'Fork', handlebar: 'Handlebar', chain: 'Chain',
+            pedalCrank: 'Pedals', pedalSprocket: 'Sprocket',
+            backTireBolt: 'Tire Levers', tireBush: 'Handlebar Bushes'
+        };
+
+        // ── Drop on viewport ─────────────────────────
+        function onDrop(ev) {
+            if (isLocked) return;
+            ev.preventDefault();
+            const raw = ev.dataTransfer.getData("text/plain");
+            if (!raw) return;
+            const { file, slot, color } = JSON.parse(raw);
+
+            // ── Duplicate guard ──────────────────────────────────────────────
+            if (SINGLE_SLOTS.has(slot)) {
+                const alreadyAdded = allParts.some(m =>
+                    m.userData.slot === slot ||
+                    // pedal pair uses same slot for both meshes
+                    (slot === 'pedalCrank' && m.userData.slot === 'pedalCrank') ||
+                    // tire lever pair uses backTireBolt / tireBolt
+                    (slot === 'backTireBolt' && (m.userData.slot === 'backTireBolt' || m.userData.slot === 'tireBolt'))
+                );
+                if (alreadyAdded) {
+                    showDuplicateToast(PART_DISPLAY_NAME[slot] || slot);
+                    return;
+                }
+            }
+
+            const url = uploadedFiles[file.toLowerCase()] || file;
+            loadPart(url, slot, color);
+        }
+
+        // ── Load & auto-scale STL ────────────────────
+        function loadPart(url, slot, color) {
+            setStatus('Loading…');
+            new THREE.STLLoader().load(url, function (geo) {
+                geo.center();
+                geo.computeVertexNormals();
+                geo.computeBoundingBox();
+
+                const size = new THREE.Vector3();
+                geo.boundingBox.getSize(size);
+                const longest = Math.max(size.x, size.y, size.z);
+
+                const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.45, roughness: 0.5, envMapIntensity: 0.8 });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+
+                if (slot === 'frame') {
+                    // Scale frame to FRAME_TARGET units
+                    frameScale = FRAME_TARGET / longest;
+                    mesh.scale.setScalar(frameScale);
+                    mesh.position.set(0, 0, 0);
+
+                    // Compute world-space bounding box for snap reference
+                    mesh.updateMatrixWorld(true);
+                    frameBox = new THREE.Box3().setFromObject(mesh);
+
+                    // Hide hint
+                    const fh = document.getElementById('frame-hint');
+                    if (fh) fh.style.display = 'none';
+                    setStatus('Frame loaded ✓ — now drop other parts');
+                } else {
+                    if (!frameBox) {
+                        setStatus('⚠️ Drop the Frame first!');
+                        return;
+                    }
+                    const def = SLOT_DEF[slot] || SLOT_DEF.frame;
+                    const fbSize = new THREE.Vector3();
+                    frameBox.getSize(fbSize);
+                    const refLen = Math.max(fbSize.x, fbSize.y, fbSize.z);
+
+                    // Scale: part's longest axis = targetFrac × frame's longest axis
+                    const targetSize = def.targetFrac * refLen;
+                    mesh.scale.setScalar(targetSize / longest);
+
+                    // Orientation
+                    applyOrientation(mesh, geo, def, slot);
+
+                    // Snap position inside frame bbox
+                    const snapX = frameBox.min.x + def.fx * fbSize.x;
+                    const snapY = frameBox.min.y + def.fy * fbSize.y;
+                    const snapZ = frameBox.min.z + def.fz * fbSize.z;
+
+                    // ── Pedal: spawn mirrored pair (×2) ─────────────────────
+                    if (slot === 'pedalCrank') {
+                        const zOff = fbSize.z * 0.12;
+                        mesh.position.set(snapX, snapY, snapZ + zOff);
+                        mesh.rotation.y = Math.PI / 2;
+                        mesh.userData.slot = slot;
+                        scene.add(mesh); allParts.push(mesh);
+
+                        const meshL = new THREE.Mesh(geo, mat.clone());
+                        meshL.scale.setScalar(targetSize / longest);
+                        meshL.position.set(snapX, snapY, snapZ - zOff);
+                        meshL.rotation.y = -Math.PI / 2;
+                        meshL.userData.slot = slot;
+                        scene.add(meshL); allParts.push(meshL);
+
+                        setStatus('Pedal pair snapped ✓ — drag to fine-tune');
+                        rebuildDrag(); return;
+                    }
+
+                    // ── Tire Lever: spawn ×2 (front + back) ──────────────────
+                    if (slot === 'backTireBolt') {
+                        const leverDef = SLOT_DEF.backTireBolt;
+                        const leverSize = leverDef.targetFrac * refLen;
+                        // Back lever (near back wheel)
+                        mesh.position.set(snapX, snapY, snapZ);
+                        mesh.userData.slot = slot;
+                        scene.add(mesh); allParts.push(mesh);
+                        // Front lever (near front wheel)
+                        const snapXF = frameBox.min.x + 0.05 * fbSize.x;
+                        const meshF = new THREE.Mesh(geo, mat.clone());
+                        meshF.scale.setScalar(leverSize / longest);
+                        meshF.position.set(snapXF, snapY, snapZ);
+                        meshF.userData.slot = 'tireBolt';
+                        scene.add(meshF); allParts.push(meshF);
+                        setStatus('Tire levers (×2) snapped ✓ — drag to fine-tune');
+                        rebuildDrag(); return;
+                    }
+
+                    // ── Handlebar Bush: spawn ×1, vertical (upright) orientation ─────────
+                    if (slot === 'tireBush') {
+                        mesh.position.set(snapX, snapY, snapZ);
+                        mesh.rotation.set(-Math.PI / 10, 0, 0); // forward lean to fit head tube
+                        mesh.userData.slot = slot;
+                        scene.add(mesh); allParts.push(mesh);
+                        setStatus('Handlebar bush snapped ✓ — drag to fine-tune');
+                        rebuildDrag(); return;
+                    }
+                    // ─────────────────────────────────────────────────────────
+
+                    mesh.position.set(snapX, snapY, snapZ);
+                    setStatus('Part snapped ✓ — drag to fine-tune');
+                }
+
+                mesh.userData.slot = slot;
+                scene.add(mesh);
+                allParts.push(mesh);
+                rebuildDrag();
+            }, undefined, err => {
+                console.error(err);
+                setStatus('⚠️ Could not load file — check localhost server');
+            });
+        }
+
+        // ── Smart orientation ────────────────────────
+        // For wheels: finds the THINNEST dimension (= the axle direction) and
+        // rotates the mesh so that axis aligns with world-X (left↔right axle).
+        // This makes the wheel stand upright and face forward regardless of how
+        // the STL was originally exported.
+        function applyOrientation(mesh, geo, def, slot) {
+            if (def.orient === 'wheel') {
+                const s = new THREE.Vector3();
+                geo.boundingBox.getSize(s);     // geometry-space dims before scale
+                const minVal = Math.min(s.x, s.y, s.z);
+
+                // Step 1 – stand the wheel upright by aligning its thin axis with Z
+                // (wheel face will be in XY plane, visible from front/back)
+                if (minVal === s.z) {
+                    // Already thin along Z → no rotation needed for upright
+                    mesh.rotation.set(0, 0, 0);
+                } else if (minVal === s.y) {
+                    // Thin along Y → rotate -90° around X so Y becomes Z
+                    mesh.rotation.set(-Math.PI / 2, 0, 0);
+                } else {
+                    // Thin along X → rotate 90° around Y so X becomes Z
+                    mesh.rotation.set(0, Math.PI / 2, 0);
+                }
+
+                // Step 2 – apply the extra Y rotation (extraRy) to turn the wheel
+                // so it faces the correct direction (right-turn = PI/2)
+                mesh.rotation.y += (def.extraRy || 0);
+
+            } else {
+                // Use explicit rx/ry/rz from SLOT_DEF
+                mesh.rotation.set(def.rx || 0, def.ry || 0, def.rz || 0);
+            }
+        }
+
+        // ── Uploaded files via picker ────────────────
+        function onFilesUploaded(ev) {
+            Array.from(ev.target.files).forEach(f => {
+                const url = URL.createObjectURL(f);
+                uploadedFiles[f.name.toLowerCase()] = url;
+                addToSidebar(f.name, url);
+            });
+            setStatus(ev.target.files.length + ' file(s) ready — drag to viewport');
+            ev.target.value = '';
+        }
+
+        function addToSidebar(filename, url) {
+            const label = filename.replace(/\.stl$/i, '');
+            const slot = guessSlot(label);
+            const div = document.createElement('div');
+            div.className = 'part-item';
+            div.draggable = true;
+            div.textContent = '📦 ' + label;
+            div.ondragstart = e => {
+                uploadedFiles[filename.toLowerCase()] = url;
+                e.dataTransfer.setData("text/plain", JSON.stringify({ file: filename, slot, color: 0x6699cc }));
+            };
+            document.getElementById('parts-list').appendChild(div);
+        }
+
+        function guessSlot(n) {
+            n = n.toLowerCase();
+            if (n.includes('frame')) return 'frame';
+            if (n.includes('sadle') || n.includes('saddle') || n.includes('seat')) return 'seat';
+            if (n.includes('fork')) return 'fork';
+            if (n.includes('handle') || n.includes('bar')) return 'handlebar';
+            if (n.includes('chain')) return 'chain';
+            if (n.match(/^4\./) || (n.includes('rim') && n.includes('4'))) return 'frontWheel';
+            if (n.match(/^5\./) || (n.includes('rim') && n.includes('5'))) return 'backWheel';
+            if (n.includes('rim') || n.includes('tire') || n.includes('wheel')) return 'frontWheel';
+            if (n.includes('liver') || n.includes('lever')) return 'backTireBolt';
+            if (n.includes('bush')) return 'tireBush';
+            if (n.match(/^8\./) || n.includes('pedal') || n.includes('crank')) return 'pedalCrank';
+            if (n.match(/^6\./) || n.includes('spracket') || n.includes('sprocket')) return 'pedalSprocket';
+            return 'frame';
+        }
+
+        // ── Drag controls (in-scene repositioning) ───
+        function rebuildDrag() {
+            if (dragControls) dragControls.dispose();
+            dragControls = new THREE.DragControls(allParts, camera, renderer.domElement);
+            dragControls.addEventListener('dragstart', () => { if (!isLocked) orbit.enabled = false; });
+            dragControls.addEventListener('drag', e => { if (!isLocked) checkTrash(e.object); });
+            dragControls.addEventListener('dragend', e => { orbit.enabled = true; maybeDelete(e.object); });
+            dragControls.enabled = !isLocked;
+            updateInstructions();
+        }
+
+        // ── Trash detection ──────────────────────────
+        function checkTrash(obj) {
+            const v = obj.position.clone().project(camera);
+            const sx = (v.x + 1) * (window.innerWidth - 240) / 2 + 240;
+            document.getElementById('trash-zone').classList.toggle('hot', sx < 260);
+        }
+        function maybeDelete(obj) {
+            const v = obj.position.clone().project(camera);
+            const sx = (v.x + 1) * (window.innerWidth - 240) / 2 + 240;
+            if (sx < 260) {
+                if (obj.userData.slot === 'frame') { frameBox = null; frameScale = 1; }
+                scene.remove(obj);
+                allParts.splice(allParts.indexOf(obj), 1);
+                rebuildDrag();
+                setStatus('Part deleted');
+            }
+            document.getElementById('trash-zone').classList.remove('hot');
+        }
+
+        // ── Right-click rotate individual part ───────
+        function onRightDrag(e) {
+            if (e.buttons !== 2 || isLocked) return;
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const hits = raycaster.intersectObjects(allParts);
+            if (hits.length > 0) {
+                orbit.enabled = false;
+                hits[0].object.rotation.y += e.movementX * 0.012;
+                hits[0].object.rotation.x += e.movementY * 0.012;
+            }
+        }
+
+        // ── Lock ─────────────────────────────────────
+        function toggleLock() {
+            isLocked = !isLocked;
+            dragControls.enabled = !isLocked;
+            const btn = document.getElementById('lock-btn');
+            btn.textContent = isLocked ? 'Unlock to Edit' : 'Lock Assembly';
+            btn.className = isLocked ? 'locked' : '';
+            setStatus(isLocked ? '🔒 LOCKED' : '✏️ EDIT MODE');
+        }
+
+        function setStatus(m) { document.getElementById('status').textContent = m; }
+
+        function onResize() {
+            const W = window.innerWidth - 500, H = window.innerHeight;
+            camera.aspect = W / H; camera.updateProjectionMatrix();
+            renderer.setSize(W, H);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            orbit.update();
+            // Slowly rotate the assembled group if active
+            if (assemblyRotating && assemblyGroup) {
+                assemblyGroup.rotation.y += 0.004;
+            }
+            renderer.render(scene, camera);
+        }
+
+        // ── AutoFix ──────────────────────────────────
+        // Required slots — every one must have at least one mesh in allParts
+        const REQUIRED_SLOTS = [
+            'frame', 'frontWheel', 'backWheel', 'seat', 'fork',
+            'handlebar', 'chain', 'backTireBolt', 'pedalCrank',
+            'pedalSprocket', 'tireBush'
+        ];
+
+        function showMissingAlert(missingNames) {
+            const el = document.getElementById('missing-alert');
+            const listEl = document.getElementById('missing-list-text');
+            // Build a bullet list of missing parts
+            listEl.innerHTML = missingNames.split(', ').map(n => '🔴 ' + n).join('<br>');
+            el.style.display = 'block';
+        }
+        const SLOT_LABELS = {
+            frame: 'Frame', frontWheel: 'Front Wheel', backWheel: 'Back Wheel',
+            seat: 'Saddle', fork: 'Fork', handlebar: 'Handlebar', chain: 'Chain',
+            backTireBolt: 'Tire Levers', pedalCrank: 'Pedals',
+            pedalSprocket: 'Sprocket', tireBush: 'Handlebar Bushes'
+        };
+
+        function autoFix() {
+            // ── Check which required parts are present ─────────────────────
+            const presentSlots = new Set(allParts.map(m => m.userData.slot));
+            const missing = REQUIRED_SLOTS.filter(s => !presentSlots.has(s));
+            if (missing.length > 0) {
+                const missingNames = missing.map(s => SLOT_LABELS[s] || s).join(', ');
+                setStatus('⚠️ Missing parts: ' + missingNames);
+                // Show a styled alert overlay
+                showMissingAlert(missingNames);
+                return;
+            }
+
+            // ── Clear ALL individual parts from scene ──────────────────────
+            setStatus('⚡ Loading Assembly…');
+            [...allParts].forEach(m => scene.remove(m));
+            allParts.length = 0;
+            frameBox = null; frameScale = 1;
+            if (assemblyGroup) { scene.remove(assemblyGroup); assemblyGroup = null; }
+            assemblyRotating = false;
+            rebuildDrag();
+
+            // ── Load ONLY Assembly.stl (single merged mesh) ────────────────
+            const assemblyUrl = uploadedFiles['assembly.stl'] || 'stl files/Assembly.stl';
+
+            new THREE.STLLoader().load(assemblyUrl, function (geo) {
+
+                geo.center();
+                geo.computeVertexNormals();
+                geo.computeBoundingBox();
+
+                const bbMin = geo.boundingBox.min;
+                const bbMax = geo.boundingBox.max;
+                const bbSize = new THREE.Vector3();
+                geo.boundingBox.getSize(bbSize);
+
+                const longest = Math.max(bbSize.x, bbSize.y, bbSize.z);
+                const sc = (FRAME_TARGET * 2) / longest;   // 2× bigger for clear view
+
+                // ═══════════════════════════════════════════════════════════
+                //  VERTEX COLOURING  —  Assembly.stl
+                //  bbox confirmed:  X: ±275.9 (WIDTH)   Y: ±486.2 (HEIGHT)
+                //  X is bicycle WIDTH (symmetric). LENGTH is along Z axis.
+                //  Wheel axle Y = -126.4
+                // ═══════════════════════════════════════════════════════════
+                const pos    = geo.attributes.position;
+                const vCount = pos.count;
+                const colBuf = new Float32Array(vCount * 3);
+
+                // ── Wheel geometry ─────────────────────────────────────────
+                // Axle height (confirmed): Y = -126.4
+                const wCY    = bbMin.y + bbSize.y * 0.37;   // = -126.4
+                // Wheel outer radius — axle at 37%, bottom at 0%  → radius = 37% of sizeY
+                const wheelOuter = bbSize.y * 0.37;         // = 359.8  (true wheel outer radius)
+                const wheelInner = wheelOuter * 0.88;       // = 316.6  (tire rubber inner edge)
+                const axleX  = 0;
+
+                // ── Sprocket (chainring) ───────────────────────────────────
+                // Confirmed centre: X = -55.2,  Y = -126.4
+                // Radius REDUCED to 2% (19.5 units) — was bleeding into chain stays
+                const spkCX  = bbMin.x + bbSize.x * 0.40;  // = -55.2
+                const spkCY  = wCY;                          // = -126.4
+                const spkR   = bbSize.y * 0.03;             // = ~29.2  (chainring, less bleed)
+
+                // ── Fork (front fork legs + crown) ────────────────────────
+                // Fork is in the front Z half, below the handlebar height zone.
+                // Use front 45% of positive-Z range as fork territory.
+                const forkMinZ = bbMax.z * 0.55;  // = 502.5 ✅ (confirmed by AutoScan FrontZone Z:503→914)
+                // Front wheel disc starts at Z=853 (from AutoScan FrontWheelHub Z:853→913)
+                // Fork blades occupy Z:503→852 in FrontZone
+                const wheelFrontZ = bbMax.z * 0.933; // = 853 ✅ (confirmed FrontWheelHub Z start)
+
+                // ── Saddle + Handlebar thresholds ─────────────────────────
+                // ForkMiddle Y:-126→97  →  hbarMinY = 97 (upper bound of fork/steerer zone)
+                // FrontZone  Y:-486→163 →  saddleMinY separates seat from frame (rear zone)
+                const saddleMinY = bbMin.y + bbSize.y * 0.80; // ≈ +292  (confirmed: saddle top)
+                const hbarMinY   = bbMin.y + bbSize.y * 0.60; // ≈  +97  (confirmed: ForkMiddle Y max)
+                const hbarMinAX  = bbSize.x * 0.09;           // ≈  49.7 (handlebar half-width)
+
+                // Log Z range to console for tuning
+                console.log('[Assembly Z] min:', bbMin.z.toFixed(1), 'max:', bbMax.z.toFixed(1),
+                            'size:', bbSize.z.toFixed(1), 'forkMinZ:', forkMinZ.toFixed(1));
+
+                // ── Colours ───────────────────────────────────────────────
+                const cRed    = new THREE.Color(0xDD0000);   // 🔴 Frame
+                const cBlack  = new THREE.Color(0x111111);   // ⚫ Tires + Saddle
+                const cSilver = new THREE.Color(0xC8C8C8);   // 🩶 Fork + Handlebar
+
+                // ── AUTO-SCAN: log bounding boxes for all 3 Z zones ────────
+                const scan = (label, fn) => {
+                    let mnX=9e9,mxX=-9e9,mnY=9e9,mxY=-9e9,mnZ=9e9,mxZ=-9e9,n=0;
+                    for(let j=0;j<vCount;j++){
+                        const jx=pos.getX(j),jy=pos.getY(j),jz=pos.getZ(j);
+                        if(fn(jx,jy,jz)){
+                            mnX=Math.min(mnX,jx);mxX=Math.max(mxX,jx);
+                            mnY=Math.min(mnY,jy);mxY=Math.max(mxY,jy);
+                            mnZ=Math.min(mnZ,jz);mxZ=Math.max(mxZ,jz);n++;
+                        }
+                    }
+                    if(n>0) console.log('[AutoScan '+label+'] X:'+mnX.toFixed(0)+'→'+mxX.toFixed(0)
+                        +' Y:'+mnY.toFixed(0)+'→'+mxY.toFixed(0)
+                        +' Z:'+mnZ.toFixed(0)+'→'+mxZ.toFixed(0)+' ('+n+' verts)');
+                };
+                scan('FrontZone', (x,y,z)=>z>forkMinZ);
+                scan('RearZone',  (x,y,z)=>z<-forkMinZ);
+                scan('Middle',    (x,y,z)=>Math.abs(z)<=forkMinZ);
+                scan('PedalArea', (x,y,z)=>y<(wCY-bbSize.y*0.04)&&Math.abs(z)<bbSize.z*0.16);
+                // New: find front wheel disc Z centre (hub at dW<30)
+                scan('FrontWheelHub', (x,y,z)=>z>forkMinZ && Math.sqrt(x*x+(y-wCY)*(y-wCY))<30);
+                // New: fork steerer in Middle zone (narrow X, above axle)
+                scan('ForkMiddle', (x,y,z)=>z>0&&z<forkMinZ&&y>wCY&&y<hbarMinY&&Math.abs(x)<65);
+                // New: rear wheel hub
+                scan('RearWheelHub', (x,y,z)=>z<-forkMinZ && Math.sqrt(x*x+(y-wCY)*(y-wCY))<30);
+                scan('ForkFullMiddle', (x,y,z)=>z>0&&z<forkMinZ&&Math.abs(x)<65);
+                scan('PedalFull', (x,y,z)=>{ const d=Math.sqrt((x-spkCX)*(x-spkCX)+(y-spkCY)*(y-spkCY)+z*z); return d>100&&d<300&&Math.abs(z)<300; });
+                // Sprocket + Chain scans
+                scan('SpkArea',   (x,y,z)=>{ const d=Math.sqrt((x-spkCX)*(x-spkCX)+(y-spkCY)*(y-spkCY)); return d<100&&Math.abs(z)<150; });
+                scan('ChainMid',  (x,y,z)=>y>wCY-50&&y<wCY+30&&z<-50&&z>-forkMinZ&&Math.abs(x)<100);
+                scan('RearSpk',   (x,y,z)=>{ const d=Math.sqrt(x*x+(y-wCY)*(y-wCY)); return d<60&&z<-forkMinZ; });
+                // ── Pedal platform diagnostic scans ─────────────────────────────────────
+                scan('PedalTipR', (x,y,z)=>z>100&&z<330&&y<-20&&y>-320);
+                scan('PedalTipL', (x,y,z)=>z<-100&&z>-330&&y<-20&&y>-320);
+
+                for (let i = 0; i < vCount; i++) {
+                    const vx = pos.getX(i);
+                    const vy = pos.getY(i);
+                    const vz = pos.getZ(i);
+
+                    // Radial dist from wheel axle in XY plane (used for wheel/tyre fallback)
+                    const dW = Math.sqrt((vx - axleX) * (vx - axleX) + (vy - wCY) * (vy - wCY));
+
+                    // YZ-plane distances to each wheel hub (for mid-zone tyre coverage)
+                    const dy  = vy - wCY;
+                    const dWF = Math.sqrt(dy*dy + (vz - 883) * (vz - 883));
+                    const dWR = Math.sqrt(dy*dy + (vz + 738) * (vz + 738));
+
+                    // Radial dist from sprocket centre (2D XY)
+                    const dS = Math.sqrt((vx - spkCX) * (vx - spkCX) + (vy - spkCY) * (vy - spkCY));
+
+                    let c;
+
+                    // 1️⃣  FRONT ZONE → all BLACK (fork blades + wheel)
+                    if (vz >= forkMinZ) {
+                        c = cBlack;
+
+                    // 🔒  FORK STEERER + CROWN → BLACK  ← checked BEFORE handlebar silver rule
+                    //     Catches the full steerer tube (Z:0→503, narrow, above axle)
+                    //     Extended Y to 200 and X to 80 to eliminate the bright patch at the crown
+                    } else if (vz > 0 && vz <= forkMinZ
+                            && vy > wCY && vy < 200
+                            && Math.abs(vx) < 80) {
+                        c = cBlack;
+
+                    // 2️⃣  HANDLEBAR → SILVER (fires only for Z < forkMinZ, fork already caught above)
+                    } else if (vz > 0 && (
+                        (vy > hbarMinY && Math.abs(vx) > hbarMinAX) ||
+                        (vy > saddleMinY)
+                    )) {
+                        c = cSilver;
+
+                    // 3️⃣  DRIVETRAIN (pedal + crank + sprocket) → BLACK
+                    } else if (
+                        (vx >= -192 && vx <= 92  && vy >= -281 && vy <= -35  && vz >= -302 && vz <= 303) ||
+                        (vx >= -31  && vx <= 21  && vy >= -325 && vy <= -15  && vz >= 260  && vz <= 335) ||
+                        (vx >= -96  && vx <= 188 && vy >= -325 && vy <= -15  && vz >= -335 && vz <= -95) ||
+                        (vx >= -105 && vx <= 42  && vy >= -231 && vy <= -54  && vz >= -155 && vz <= 48)
+                    ) {
+                        c = cBlack;
+
+                    // 🔒 REAR TIRE FULL CATCH → BLACK (priority rule, fires before mid-zone)
+                    //     Covers outer rim + spokes. Lower bound wheelOuter*0.20 (~72 units)
+                    //     safely excludes chainstays (max dW ≈55) while catching all spokes.
+                    } else if (vz < -50 && dW > wheelOuter * 0.20 && dW < wheelOuter * 1.15) {
+                        c = cBlack;
+
+                    // 5️⃣  REAR WHEEL MAIN → BLACK (Z < -503, full disc inc hub/spokes)
+                    } else if (vz < -forkMinZ && dW < wheelOuter * 1.15) {
+                        c = cBlack;
+
+                    // 6️⃣  REAR WHEEL MID-ZONE → BLACK (Z: 0 → -503, spokes + inner ring)
+                    //     Lower bound 0.20 catches all spokes; chainstays (dW<55) excluded.
+                    } else if (vz <= 0 && vz > -forkMinZ
+                            && dW > wheelOuter * 0.20 && dW < wheelOuter * 1.15) {
+                        c = cBlack;
+
+                    // 7️⃣  FRONT WHEEL FULL MID-ZONE → BLACK (Z:0→503, entire wheel height)
+                    //     Covers both below AND above axle — the top half of the front
+                    //     rim sidewall was the white patch the user sees.
+                    } else if (vz > 0 && vz < forkMinZ && dW < wheelOuter * 1.05) {
+                        c = cBlack;
+
+                    // 4️⃣  FORK BLADES → BLACK
+                    } else if (vz >= forkMinZ && vz < wheelFrontZ && dW < 55) {
+                        c = cBlack;
+
+                    // 4b️⃣  FRONT ZONE FILL → BLACK (Z:503→wheelFrontZ, non-fork geometry)
+                    //      Catches ALL dW values not already silver. Closes the 127-222 gap
+                    //      that caused red patches on the front wheel (inner rim, spokes, etc).
+                    } else if (vz >= forkMinZ && vz < wheelFrontZ) {
+                        c = cBlack;
+
+                    // Front wheel MID-ZONE → BLACK (rim side-faces Z:50→503, dW-based)
+                    } else if (vz >= 50 && vz < forkMinZ && dW > wheelInner * 0.7 && dW < wheelOuter * 1.05) {
+                        c = cBlack;
+
+                    // 5️⃣  FRONT WHEEL DISC → BLACK (+5% radius margin)
+                    } else if (vz >= wheelFrontZ && dW < wheelOuter * 1.05) {
+                        c = cBlack;
+
+                    // 6️⃣  TYRE FALLBACK → BLACK (any remaining rim ring, any Z)
+                    } else if (dW > wheelInner * 0.7 && dW < wheelOuter * 1.12) {
+                        c = cBlack;
+
+                    // 7️⃣  SADDLE → BLACK
+                    } else if (vy > saddleMinY && vz < 0) {
+                        c = cBlack;
+
+                    // 8️⃣  FRAME → RED  (all remaining geometry)
+                    } else {
+                        c = cRed;
+                    }
+
+                    colBuf[i*3]   = c.r;
+                    colBuf[i*3+1] = c.g;
+                    colBuf[i*3+2] = c.b;
+
+                }
+                geo.setAttribute('color', new THREE.BufferAttribute(colBuf, 3));
+
+
+
+
+                // ── Two-pass material: matte pass kills white specular on black tires ─────
+                // We use a single mesh but keep metalness LOW and roughness HIGH so that
+                // black vertices (tires/saddle) don't produce bright white specular hotspots.
+                // The silver fork/handlebar vertices still look metallic because their
+                // lightness value is high enough to show sheen even at low metalness.
+                const mat = new THREE.MeshStandardMaterial({
+                    vertexColors: true,
+                    metalness: 0.50,
+                    roughness: 0.35,
+                    envMapIntensity: 0.8,
+                });
+
+
+                // ── Mesh ────────────────────────────────────────────────────
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.scale.setScalar(sc);
+                mesh.rotation.set(0, 0, -Math.PI / 14);   // slight tilt
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.userData.slot = 'assembly';
+
+                assemblyGroup = new THREE.Group();
+                scene.add(assemblyGroup);
+                assemblyGroup.add(mesh);
+                allParts.push(mesh);
+
+                // Sit just above the dark grid (grid y = -220)
+                mesh.updateMatrixWorld(true);
+                assemblyGroup.updateMatrixWorld(true);
+                const wb = new THREE.Box3().setFromObject(assemblyGroup);
+                assemblyGroup.position.y = -wb.min.y - 220 + 10;
+                assemblyGroup.updateMatrixWorld(true);
+                frameBox = new THREE.Box3().setFromObject(assemblyGroup);
+
+                rebuildDrag();
+
+                const fh = document.getElementById('frame-hint');
+                if (fh) fh.style.display = 'none';
+
+                // ── NO auto-rotation ─────────────────────────────────────────
+                assemblyRotating = false;
+                setStatus('✅ Assembly — Frame 🔴 Red  |  Tires + Saddle ⚫ Black  |  Fork + Handlebar 🩶 Silver');
+
+            }, undefined, function (err) {
+                console.error(err);
+                setStatus('⚠️ Assembly.stl not found — upload it or run a local server');
+            });
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
+
+frontWheel: { color: 0x000000, metalness: 0.10, roughness: 0.90 }, // full black tyre
+backWheel: { color: 0x000000, metalness: 0.10, roughness: 0.90 }, // full black tyre
+seat: { color: 0x000000, metalness: 0.05, roughness: 0.95 }, // full black saddle
+fork: { color: 0xc0c0c0, metalness: 0.80, roughness: 0.20 }, // silver fork
+handlebar: { color: 0xc0c0c0, metalness: 0.80, roughness: 0.20 }, // silver handlebar
+chain: { color: 0xd4af37, metalness: 0.85, roughness: 0.20 }, // gold chain
+backTireBolt: { color: 0xff6600, metalness: 0.4, roughness: 0.5 }, // orange lever
+tireBolt: { color: 0xff6600, metalness: 0.4, roughness: 0.5 },
+pedalCrank: { color: 0x888888, metalness: 0.7, roughness: 0.3 }, // brushed aluminium
+pedalSprocket:{ color: 0xd4af37, metalness: 0.85, roughness: 0.15 }, // gold sprocket
+tireBush: { color: 0xc0c0c0, metalness: 0.75, roughness: 0.25 }, // silver bushes
+};
+
+// Map slot → STL file path (same paths used in sidebar drag)
+const SLOT_FILE_MAP = {
+frame: 'stl files/1. Frame.STL',
+frontWheel: 'stl files/4. Rim with Tire.STL',
+backWheel: 'stl files/5. Rim with Tire.STL',
+seat: 'stl files/7. Sadle.STL',
+fork: 'stl files/2. Fork.STL',
+handlebar: 'stl files/3. Handlebar.STL',
+chain: 'stl files/Chain.STL',
+backTireBolt: 'stl files/11. back tire liver .STL',
+pedalCrank: 'stl files/8. Pedal.STL',
+pedalSprocket: 'stl files/6. Sprocket.STL',
+tireBush: 'stl files/tire bushes.STL',
+};
+
+// Create a group to hold all assembly parts (enables group rotation)
+assemblyGroup = new THREE.Group();
+scene.add(assemblyGroup);
+assemblyRotating = false;
+
+const slots = Object.keys(SLOT_FILE_MAP);
+let loadedCount = 0;
+let frameRef = null; // will hold frame mesh for snap reference
+
+function tryFinalize() {
+if (loadedCount < slots.length) return; // Compute frameBox from assemblyGroup assemblyGroup.updateMatrixWorld(true);
+    frameBox=new THREE.Box3().setFromObject(assemblyGroup); // Re-center the group vertically so it sits just above the
+    grid const boxSize=new THREE.Vector3(); frameBox.getSize(boxSize); assemblyGroup.position.y=-frameBox.min.y - 220 +
+    10; assemblyGroup.updateMatrixWorld(true); frameBox=new THREE.Box3().setFromObject(assemblyGroup); rebuildDrag();
+    const fh=document.getElementById('frame-hint'); if (fh) fh.style.display='none' ; // ── NO auto-rotation
+    ──────────────────────────────────────── assemblyRotating=false; setStatus('✅ Assembly loaded — frame 🔴 red · tires
+    ⚫ black · sprocket+chain 🟡 gold'); } // Stop spin on drag
+    document.getElementById('viewport').addEventListener('mousedown', ()=> {
+    assemblyRotating = false;
+    }, { once: false });
+
+    const loader = new THREE.STLLoader();
+
+    slots.forEach(slot => {
+    const filePath = uploadedFiles[SLOT_FILE_MAP[slot].toLowerCase()] || SLOT_FILE_MAP[slot];
+    const colorDef = PART_COLOR_MAP[slot];
+    const slotDef = SLOT_DEF[slot];
+
+    loader.load(filePath, function(geo) {
+    geo.center();
+    geo.computeVertexNormals();
+    geo.computeBoundingBox();
+
+    const size = new THREE.Vector3();
+    geo.boundingBox.getSize(size);
+    const longest = Math.max(size.x, size.y, size.z);
+
+    const mat = new THREE.MeshStandardMaterial({
+    color: colorDef.color,
+    metalness: colorDef.metalness,
+    roughness: colorDef.roughness,
+    envMapIntensity: 1.0,
+    });
+
+    if (slot === 'frame') {
+    // Frame: scale to FRAME_TARGET, place at origin
+    const sc = FRAME_TARGET / longest;
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.scale.setScalar(sc);
+    mesh.rotation.set(slotDef.rx||0, slotDef.ry||0, slotDef.rz||0);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.userData.slot = slot;
+    assemblyGroup.add(mesh);
+    allParts.push(mesh);
+
+    // Build temporary frameBox for other parts to snap to
+    mesh.updateMatrixWorld(true);
+    frameRef = mesh;
+    const tempBox = new THREE.Box3().setFromObject(mesh);
+    frameBox = tempBox;
+    loadedCount++;
+    tryFinalize();
+
+    } else {
+    // Wait until frame is ready
+    const tryPlace = () => {
+    if (!frameBox) { setTimeout(tryPlace, 80); return; }
+
+    const fbSize = new THREE.Vector3();
+    frameBox.getSize(fbSize);
+    const refLen = Math.max(fbSize.x, fbSize.y, fbSize.z);
+    const targetSize = slotDef.targetFrac * refLen;
+    const sc = targetSize / longest;
+
+    // Spawn mirrored pedals
+    if (slot === 'pedalCrank') {
+    const zOff = fbSize.z * 0.12;
+    const snapX = frameBox.min.x + slotDef.fx * fbSize.x;
+    const snapY = frameBox.min.y + slotDef.fy * fbSize.y;
+    const snapZ = frameBox.min.z + slotDef.fz * fbSize.z;
+
+    const mR = new THREE.Mesh(geo, mat);
+    mR.scale.setScalar(sc);
+    mR.position.set(snapX, snapY, snapZ + zOff);
+    mR.rotation.y = Math.PI / 2;
+    mR.castShadow = true; mR.receiveShadow = true;
+    mR.userData.slot = slot;
+    assemblyGroup.add(mR); allParts.push(mR);
+
+    const mL = new THREE.Mesh(geo, mat.clone());
+    mL.scale.setScalar(sc);
+    mL.position.set(snapX, snapY, snapZ - zOff);
+    mL.rotation.y = -Math.PI / 2;
+    mL.castShadow = true; mL.receiveShadow = true;
+    mL.userData.slot = slot;
+    assemblyGroup.add(mL); allParts.push(mL);
+    loadedCount++; tryFinalize(); return;
+    }
+
+    // Spawn tire levers ×2
+    if (slot === 'backTireBolt') {
+    const snapX = frameBox.min.x + slotDef.fx * fbSize.x;
+    const snapY = frameBox.min.y + slotDef.fy * fbSize.y;
+    const snapZ = frameBox.min.z + slotDef.fz * fbSize.z;
+
+    const mB = new THREE.Mesh(geo, mat);
+    mB.scale.setScalar(sc); mB.position.set(snapX, snapY, snapZ);
+    mB.castShadow = true; mB.receiveShadow = true;
+    mB.userData.slot = slot;
+    assemblyGroup.add(mB); allParts.push(mB);
+
+    const snapXF = frameBox.min.x + 0.05 * fbSize.x;
+    const mF = new THREE.Mesh(geo, mat.clone());
+    mF.scale.setScalar(sc); mF.position.set(snapXF, snapY, snapZ);
+    mF.castShadow = true; mF.receiveShadow = true;
+    mF.userData.slot = 'tireBolt';
+    assemblyGroup.add(mF); allParts.push(mF);
+    loadedCount++; tryFinalize(); return;
+    }
+
+    const snapX = frameBox.min.x + slotDef.fx * fbSize.x;
+    const snapY = frameBox.min.y + slotDef.fy * fbSize.y;
+    const snapZ = frameBox.min.z + slotDef.fz * fbSize.z;
+
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.scale.setScalar(sc);
+    mesh.position.set(snapX, snapY, snapZ);
+    applyOrientation(mesh, geo, slotDef, slot);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.userData.slot = slot;
+    assemblyGroup.add(mesh);
+    allParts.push(mesh);
+    loadedCount++;
+    tryFinalize();
+    };
+    tryPlace();
+    }
+    }, undefined, err => {
+    console.warn('Could not load', filePath, err);
+    loadedCount++; // count it anyway so finalize still fires
+    tryFinalize();
+    });
+    });
+
+    // Also try loading monolithic Assembly.stl as fallback reference
+    // (only used if individual parts all fail)
+    const assemblyUrl = uploadedFiles['assembly.stl'] || 'stl files/Assembly.stl';
+    loader.load(assemblyUrl, function(geo) {
+    // If individual parts loaded fine, skip the fallback
+    if (allParts.length > 0) return;
+    geo.center();
+    geo.computeVertexNormals();
+    geo.computeBoundingBox();
+    const size2 = new THREE.Vector3();
+    geo.boundingBox.getSize(size2);
+    const sc2 = FRAME_TARGET / Math.max(size2.x, size2.y, size2.z);
+    const mat2 = new THREE.MeshStandardMaterial({
+    color: 0x4a90d9, metalness: 0.4, roughness: 0.5
+    });
+    const mesh2 = new THREE.Mesh(geo, mat2);
+    mesh2.scale.setScalar(sc2);
+    mesh2.castShadow = true; mesh2.receiveShadow = true;
+    mesh2.userData.slot = 'assembly';
+    assemblyGroup.add(mesh2); allParts.push(mesh2);
+    mesh2.updateMatrixWorld(true);
+    frameBox = new THREE.Box3().setFromObject(mesh2);
+    rebuildDrag();
+    setStatus('✅ Assembly.stl loaded (monolithic)');
+    }, undefined, () => { /* silent fallback failure */ });
+    }
+
+    init();
+    </script>
+    </body>
+
+    </html>

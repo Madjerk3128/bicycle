@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Virtual Bicycle Activity</title>
+    <!-- Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Futuristic Dark Theme Palette */
+            --bg-color: #0B0E14;
+            --glass-bg: rgba(20, 25, 35, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --primary: #00F0FF;     /* Cyan/Neon Blue */
+            --secondary: #7000FF;   /* Deep Purple */
+            --tertiary: #FF0055;    /* Neon Pink */
+            --text-main: #FFFFFF;
+            --text-muted: #A0AABF;
+            --warning-bg: rgba(255, 170, 0, 0.1);
+            --warning-border: rgba(255, 170, 0, 0.4);
+            --warning-text: #FFD000;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(112, 0, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.08) 0%, transparent 50%);
+        }
+
+        /* Animated Abstract Background Shapes */
+        .bg-shape {
+            position: absolute;
+            filter: blur(90px);
+            opacity: 0.5;
+            z-index: -1;
+            animation: move-shapes 25s infinite alternate ease-in-out;
+        }
+        
+        .shape-1 {
+            width: 50vw;
+            height: 50vw;
+            background: var(--secondary);
+            top: -20vh;
+            left: -10vw;
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        }
+        
+        .shape-2 {
+            width: 40vw;
+            height: 40vw;
+            background: var(--primary);
+            bottom: -10vh;
+            right: -5vw;
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation-delay: -10s;
+        }
+
+        @keyframes move-shapes {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            50% { transform: translate(5vw, 10vh) rotate(90deg) scale(1.1); }
+            100% { transform: translate(-5vw, -5vh) rotate(180deg) scale(0.9); }
+        }
+
+        /* Grid overlay for a high-tech feel */
+        .grid-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 850px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 4rem 3.5rem;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 50px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFFFFF 20%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 3.5rem;
+        }
+
+        .step-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hover Glow Effect */
+        .step-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .step-card:hover::after {
+            transform: translateX(100%);
+        }
+
+        .step-card:hover {
+            transform: scale(1.02) translateX(10px);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 35px -10px rgba(0,0,0,0.5), 
+                        inset 0 0 20px rgba(0, 240, 255, 0.05);
+        }
+
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            font-size: 1.6rem;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 8px 25px rgba(0, 240, 255, 0.3);
+            position: relative;
+        }
+        
+        .step-number::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            filter: blur(8px);
+        }
+
+        .step-card:hover .step-number::before {
+            opacity: 1;
+        }
+
+        .step-content h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .step-content p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        .file-name {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 600;
+            color: var(--primary);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .step-card:hover .file-name {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+        }
+
+        .action-section {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: #fff;
+            text-decoration: none;
+            padding: 1.4rem 3rem;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            z-index: 1;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50px;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+            opacity: 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0, 240, 255, 0.4), 
+                        0 0 20px rgba(112, 0, 255, 0.4);
+        }
+        
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .note-tab {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .note-tab::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--warning-text);
+            box-shadow: 0 0 10px var(--warning-text);
+        }
+
+        .note-icon {
+            font-size: 2rem;
+            color: var(--warning-text);
+            filter: drop-shadow(0 0 8px rgba(255, 208, 0, 0.5));
+            animation: gentle-pulse 2s infinite alternate;
+        }
+
+        @keyframes gentle-pulse {
+            from { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255, 208, 0, 0.3)); }
+            to { transform: scale(1.1); filter: drop-shadow(0 0 15px rgba(255, 208, 0, 0.8)); }
+        }
+
+        .note-content h4 {
+            color: var(--warning-text);
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+
+        .note-content p {
+            color: #FFE680;
+            font-size: 1.05rem;
+            font-weight: 400;
+        }
+
+        /* Initial Load Animations */
+        .animate-in {
+            opacity: 0;
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 2.5rem 1.5rem; }
+            h1 { font-size: 2.5rem; }
+            .step-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.2rem;
+                padding: 1.5rem;
+            }
+            .step-card:hover { transform: translateY(-5px); }
+            .btn { width: 100%; font-size: 1.1rem; padding: 1.2rem 1.5rem; }
+            .note-tab { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-overlay"></div>
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <div class="container animate-in">
+        <header>
+            <div class="badge">Installation Guide</div>
+            <h1>Virtual Bicycle Setup</h1>
+            <p class="subtitle">Follow the steps below to download and launch your interactive 3D bicycle experience.</p>
+        </header>
+
+        <div class="steps-container">
+            <div class="step-card animate-in" style="animation-delay: 0.15s;">
+                <div class="step-number"><i class="fa-solid fa-link"></i></div>
+                <div class="step-content">
+                    <h3>Step 1: Open the Link</h3>
+                    <p>Click the button below. It will redirect you to Google Drive.</p>
+                </div>
+            </div>
+
+            <div class="step-card animate-in" style="animation-delay: 0.25s;">
+                <div class="step-number"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div class="step-content">
+                    <h3>Step 2: Search for the File</h3>
+                    <p>After opening Drive, search for the file named <span class="file-name">download_me_first.zip</span>.</p>
+                </div>
+            </div>
+
+            <div class="step-card animate-in" style="animation-delay: 0.35s;">
+                <div class="step-number"><i class="fa-solid fa-download"></i></div>
+                <div class="step-content">
+                    <h3>Step 3: Download to Desktop</h3>
+                    <p>Download the file to your <strong>Desktop</strong>.</p>
+                </div>
+            </div>
+
+            <div class="step-card animate-in" style="animation-delay: 0.45s;">
+                <div class="step-number"><i class="fa-solid fa-file-zipper"></i></div>
+                <div class="step-content">
+                    <h3>Step 4: Extract the ZIP</h3>
+                    <p>Extract the ZIP file on your desktop.</p>
+                </div>
+            </div>
+
+            <div class="step-card animate-in" style="animation-delay: 0.55s;">
+                <div class="step-number"><i class="fa-solid fa-play"></i></div>
+                <div class="step-content">
+                    <h3>Step 5: Run the Installer</h3>
+                    <p>Open the extracted folder and double-click the file named <span class="file-name">download_me_first.bat</span>.</p>
+                </div>
+            </div>
+
+            <div class="step-card animate-in" style="animation-delay: 0.65s;">
+                <div class="step-number"><i class="fa-solid fa-circle-info"></i></div>
+                <div class="step-content">
+                    <h3>Step 6: Troubleshoot if Needed</h3>
+                    <p>If any error occurs, open the PDF named <span class="file-name">README</span> located in the same folder for troubleshooting instructions.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-section animate-in" style="animation-delay: 0.75s;">
+            <a href="https://drive.google.com/file/d/1JlcH9lj-oUz2CRt6wCPcABA5QiUzoCCJ/view?usp=sharing" target="_blank" class="btn">
+                <i class="fa-brands fa-google-drive"></i> Access Google Drive
+            </a>
+        </div>
+
+        <div class="note-tab animate-in" style="animation-delay: 0.85s;">
+            <div class="note-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="note-content">
+                <h4>Important Note</h4>
+                <p>Make sure you are connected to a high-speed internet connection.</p>
+                <p style="margin-top: 0.5rem;">This works only on PC/Desktop devices such as Windows, macOS, and Linux. It does not support Android or iOS devices.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

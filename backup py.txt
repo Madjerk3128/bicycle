@@ -1,0 +1,55 @@
+@echo off
+title 🚲 Bicycle Assembler - Starting...
+color 0b
+
+echo ================================================
+echo   🚲 BICYCLE ASSEMBLER - Auto Server Launcher
+echo ================================================
+echo.
+
+:: ── Try Python 3 ─────────────────────────────────
+echo [1/3] Checking for Python...
+python --version >nul 2>&1
+if %errorlevel% equ 0 (
+    echo  ✓ Python found! Starting server on port 8000...
+    echo  Opening browser...
+    timeout /t 1 /nobreak >nul
+    start http://localhost:8000/tinkercad.html
+    python -m http.server 8000
+    goto :end
+)
+
+:: ── Try Node.js / npx http-server ────────────────
+echo  ✗ Python not found.
+echo.
+echo [2/3] Checking for Node.js...
+node --version >nul 2>&1
+if %errorlevel% equ 0 (
+    echo  ✓ Node.js found! Starting http-server...
+    timeout /t 1 /nobreak >nul
+    start http://localhost:8080/tinkercad.html
+    npx -y http-server . -p 8080 --silent
+    goto :end
+)
+
+:: ── Fallback: open file directly ─────────────────
+echo  ✗ Node.js not found either.
+echo.
+echo [3/3] Falling back to direct file open...
+echo.
+echo ================================================
+echo   ⚠️  WARNING: No local server available!
+echo   STL files may NOT load in this mode because
+echo   browsers block local file access for security.
+echo.
+echo   To fix this properly, install ONE of:
+echo     Python : https://www.python.org/downloads/
+echo             (tick "Add Python to PATH" during install)
+echo     Node.js: https://nodejs.org/
+echo ================================================
+echo.
+echo  Opening tinkercad.html directly anyway...
+pause
+start "" "%~dp0tinkercad.html"
+
+:end
