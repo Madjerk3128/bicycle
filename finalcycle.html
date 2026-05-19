@@ -240,6 +240,24 @@
             background: rgba(37, 99, 235, 0.5);
         }
 
+        /* ── Fix button ─────────────────────────────── */
+        #fix-btn {
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s, transform 0.1s;
+            box-shadow: 0 2px 12px rgba(16, 185, 129, 0.3);
+        }
+        #fix-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        #fix-btn:active { transform: translateY(0); }
+
         #hint {
             position: absolute;
             top: 14px;
@@ -537,44 +555,32 @@
         <input type="file" id="file-input" multiple accept=".stl,.STL" onchange="onFilesUploaded(event)">
 
         <div id="parts-list">
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/1.%20Frame.STL','frame',0xcc2200)">
-                🔩 Frame</div>
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/2.%20Fork.STL','fork',0xc0c0c0)">🍴
-                Fork</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/tire%20bushes.STL','tireBush',0xc0c0c0)">🔩 Handlebar Bushes</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/3.%20Handlebar.STL','handlebar',0xc0c0c0)">🎛️ Handlebar</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/4.%20Rim%20with%20Tire.STL','frontWheel',0x000000)">⭕ Front Wheel</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/11.%20back%20tire%20liver%20.STL','frontTireLever',0xc0c0c0)">🔧 Front Tire Lever</div>
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/7.%20Sadle.STL','seat',0x000000)">
-                🪑 Saddle</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/6.%20Sprocket.STL','pedalSprocket',0xd4af37)">⚙️ Sprocket</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/8.%20Pedal.STL','pedalCrank',0xc0c0c0)">🦵 Pedal ×2</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/5.%20Rim%20with%20Tire.STL','backWheel',0x000000)">⭕ Back Wheel</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/11.%20back%20tire%20liver%20.STL','backTireLever',0xc0c0c0)">🔧 Back Tire Lever</div>
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/Chain.STL','chain',0xd4af37)">⛓️
-                Chain</div>
+            <div class="part-item" onclick="clickPart('stl%20files/1.%20Frame.STL','frame',0xcc2200)">🔩 Frame</div>
+            <div class="part-item" onclick="clickPart('stl%20files/2.%20Fork.STL','fork',0xc0c0c0)">🍴 Fork</div>
+            <div class="part-item" onclick="clickPart('stl%20files/tire%20bushes.STL','tireBush',0xc0c0c0)">🔩 Handlebar Bushes</div>
+            <div class="part-item" onclick="clickPart('stl%20files/3.%20Handlebar.STL','handlebar',0xc0c0c0)">🎛️ Handlebar</div>
+            <div class="part-item" onclick="clickPart('stl%20files/4.%20Rim%20with%20Tire.STL','frontWheel',0x000000)">⭕ Front Wheel</div>
+            <div class="part-item" onclick="clickPart('stl%20files/11.%20back%20tire%20liver%20.STL','frontTireLever',0xc0c0c0)">🔧 Front Tire Lever</div>
+            <div class="part-item" onclick="clickPart('stl%20files/7.%20Sadle.STL','seat',0x000000)">🪑 Saddle</div>
+            <div class="part-item" onclick="clickPart('stl%20files/6.%20Sprocket.STL','pedalSprocket',0xd4af37)">⚙️ Sprocket</div>
+            <div class="part-item" onclick="clickPart('stl%20files/8.%20Pedal.STL','pedalCrank',0xc0c0c0)">🦵 Pedal ×2</div>
+            <div class="part-item" onclick="clickPart('stl%20files/5.%20Rim%20with%20Tire.STL','backWheel',0x000000)">⭕ Back Wheel</div>
+            <div class="part-item" onclick="clickPart('stl%20files/11.%20back%20tire%20liver%20.STL','backTireLever',0xc0c0c0)">🔧 Back Tire Lever</div>
+            <div class="part-item" onclick="clickPart('stl%20files/Chain.STL','chain',0xd4af37)">⛓️ Chain</div>
         </div>
         <!-- ↑ scroll inside this list if items overflow -->
+
+        <button id="fix-btn" onclick="fixPositions()" style="display:none;">🔧 Fix Positions</button>
 
         <div class="zoom-controls">
             <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">🔍+</button>
             <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">🔍−</button>
         </div>
         <button id="autofix-btn" onclick="autoFix()">⚡ AutoFix Assembly</button>
-
-        <div id="trash-zone">🗑️ DRAG HERE TO DELETE</div>
     </div>
 
     <div id="viewport">
-        <div id="hint">Drag parts from panel · Use 🔍+/− to zoom · Right-click drag = rotate part</div>
+        <div id="hint">Click parts from panel · Use 🔍+/− to zoom · Right-click drag = rotate part</div>
         <div id="frame-hint">⚠️ Add the Frame first — other parts snap relative to it</div>
         <div id="dup-toast">⚠️ <span id="dup-toast-msg"></span></div>
         <div id="assembly-toast" style="display:none;position:absolute;top:64px;left:50%;transform:translateX(-50%);z-index:999;background:rgba(120,53,15,0.97);border:1.5px solid #d97706;color:#fbbf24;font-weight:700;font-size:0.88rem;padding:13px 22px;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,0.5);white-space:nowrap;letter-spacing:0.3px;">
@@ -888,12 +894,68 @@
             animate();
         }
 
-        // ── Drag data from sidebar ───────────────────
-        function drag(ev, file, slot, color) {
-            ev.dataTransfer.setData("text/plain", JSON.stringify({ file, slot, color }));
-            instrHighlightDrag(slot);
-            // Clear drag highlight when drag ends (drop or cancel)
-            ev.target.addEventListener('dragend', instrClearDrag, { once: true });
+        // ── Click to place from sidebar ──────────────
+        function clickPart(file, slot, color) {
+            if (isLocked) return;
+            if (isAssembled()) { showAssemblyLockedToast(); return; }
+
+            // ── Strict step-by-step enforcement ──
+            const curStep = getCurrentStep();
+            const stepIdx = INSTR_DEFS.findIndex(d => d.slot === slot);
+            if (stepIdx >= 0 && stepIdx !== curStep) {
+                if (stepIdx < curStep) { showDuplicateToast(PART_DISPLAY_NAME[slot] || slot); }
+                else { setStatus('⚠️ Complete step ' + (curStep+1) + ' first!'); }
+                return;
+            }
+
+            // ── Duplicate guard ──
+            if (SINGLE_SLOTS.has(slot)) {
+                if (allParts.some(m => m.userData.slot === slot)) {
+                    showDuplicateToast(PART_DISPLAY_NAME[slot] || slot);
+                    return;
+                }
+            }
+
+            const url = uploadedFiles[file.toLowerCase()] || (BASE_URL + file);
+            loadPart(url, slot, color);
+
+            // Show Fix button after 2+ parts placed
+            setTimeout(() => {
+                if (allParts.length >= 2) {
+                    document.getElementById('fix-btn').style.display = 'block';
+                }
+            }, 1500);
+        }
+
+        // ── Fix Positions: snap all parts to correct locations ──
+        function fixPositions() {
+            if (!frameBox) { setStatus('⚠️ Place the Frame first!'); return; }
+
+            const fbSize = new THREE.Vector3();
+            frameBox.getSize(fbSize);
+            const refLen = Math.max(fbSize.x, fbSize.y, fbSize.z);
+
+            allParts.forEach(mesh => {
+                const slot = mesh.userData.slot;
+                if (slot === 'frame' || slot === 'assembly') return; // don't move frame
+                const def = SLOT_DEF[slot];
+                if (!def) return;
+
+                // Recalculate correct snap position
+                const snapX = frameBox.min.x + def.fx * fbSize.x;
+                const snapY = frameBox.min.y + def.fy * fbSize.y;
+                const snapZ = frameBox.min.z + def.fz * fbSize.z;
+
+                mesh.position.set(snapX, snapY, snapZ);
+
+                // Reapply orientation
+                const geo = mesh.geometry;
+                geo.computeBoundingBox();
+                applyOrientation(mesh, geo, def, slot);
+            });
+
+            rebuildDrag();
+            setStatus('✅ All parts snapped to correct positions!');
         }
 
         // ── Duplicate-part toast helper ───────────────
