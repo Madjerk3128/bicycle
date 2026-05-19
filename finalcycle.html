@@ -713,6 +713,10 @@
             const pf = document.getElementById('instr-bar-fill');
             if (pt) pt.textContent = `Step ${done} / ${INSTR_DEFS.length} complete`;
             if (pf) pf.style.width = pct + '%';
+
+            // Show Fix button once step 2+ is done (frame + fork placed)
+            const fixBtn = document.getElementById('fix-btn');
+            if (fixBtn) fixBtn.style.display = done >= 2 ? 'block' : 'none';
         }
 
         function instrHighlightDrag(slot) {
@@ -915,12 +919,6 @@
             const url = uploadedFiles[file.toLowerCase()] || (BASE_URL + file);
             loadPart(url, slot, color);
 
-            // Show Fix button after step 2 (frame + fork placed)
-            setTimeout(() => {
-                if (getCurrentStep() >= 2) {
-                    document.getElementById('fix-btn').style.display = 'block';
-                }
-            }, 1500);
         }
 
         // ── Fix Positions: snap all parts to correct locations ──
