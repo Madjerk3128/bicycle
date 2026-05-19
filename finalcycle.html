@@ -547,6 +547,8 @@
                 ondragstart="drag(event,'stl%20files/3.%20Handlebar.STL','handlebar',0xc0c0c0)">🎛️ Handlebar</div>
             <div class="part-item" draggable="true"
                 ondragstart="drag(event,'stl%20files/4.%20Rim%20with%20Tire.STL','frontWheel',0x000000)">⭕ Front Wheel</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl%20files/11.%20back%20tire%20liver%20.STL','frontTireLever',0xc0c0c0)">🔧 Front Tire Lever</div>
             <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/7.%20Sadle.STL','seat',0x000000)">
                 🪑 Saddle</div>
             <div class="part-item" draggable="true"
@@ -555,6 +557,8 @@
                 ondragstart="drag(event,'stl%20files/6.%20Sprocket.STL','pedalSprocket',0xd4af37)">⚙️ Sprocket</div>
             <div class="part-item" draggable="true"
                 ondragstart="drag(event,'stl%20files/5.%20Rim%20with%20Tire.STL','backWheel',0x000000)">⭕ Back Wheel</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl%20files/11.%20back%20tire%20liver%20.STL','backTireLever',0xc0c0c0)">🔧 Back Tire Lever</div>
             <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/Chain.STL','chain',0xd4af37)">⛓️
                 Chain</div>
         </div>
@@ -594,7 +598,7 @@
         <h2>📋 Instructions</h2>
         <div id="instr-list"></div>
         <div id="instr-footer">
-            <span id="instr-prog-text">Step 0 / 10</span>
+            <span id="instr-prog-text">Step 0 / 12</span>
             <div id="instr-bar-wrap"><div id="instr-bar-fill"></div></div>
         </div>
     </div>
@@ -612,16 +616,18 @@
         // ─────────────────────────────────────────────
         // ── Instructions System ──────────────────────
         const INSTR_DEFS = [
-            { slot: 'frame',         file: 'stl%20files/1.%20Frame.STL',             color: 0xcc2200 },
-            { slot: 'fork',          file: 'stl%20files/2.%20Fork.STL',              color: 0xc0c0c0 },
-            { slot: 'tireBush',      file: 'stl%20files/tire%20bushes.STL',          color: 0xc0c0c0 },
-            { slot: 'handlebar',     file: 'stl%20files/3.%20Handlebar.STL',         color: 0xc0c0c0 },
-            { slot: 'frontWheel',    file: 'stl%20files/4.%20Rim%20with%20Tire.STL', color: 0x000000 },
-            { slot: 'seat',          file: 'stl%20files/7.%20Sadle.STL',             color: 0x000000 },
-            { slot: 'pedalCrank',    file: 'stl%20files/8.%20Pedal.STL',             color: 0xc0c0c0 },
-            { slot: 'pedalSprocket', file: 'stl%20files/6.%20Sprocket.STL',          color: 0xd4af37 },
-            { slot: 'backWheel',     file: 'stl%20files/5.%20Rim%20with%20Tire.STL', color: 0x000000 },
-            { slot: 'chain',         file: 'stl%20files/Chain.STL',                  color: 0xd4af37 },
+            { slot: 'frame',           file: 'stl%20files/1.%20Frame.STL',                       color: 0xcc2200 },
+            { slot: 'fork',            file: 'stl%20files/2.%20Fork.STL',                        color: 0xc0c0c0 },
+            { slot: 'tireBush',        file: 'stl%20files/tire%20bushes.STL',                     color: 0xc0c0c0 },
+            { slot: 'handlebar',       file: 'stl%20files/3.%20Handlebar.STL',                    color: 0xc0c0c0 },
+            { slot: 'frontWheel',      file: 'stl%20files/4.%20Rim%20with%20Tire.STL',            color: 0x000000 },
+            { slot: 'frontTireLever',  file: 'stl%20files/11.%20back%20tire%20liver%20.STL',      color: 0xc0c0c0 },
+            { slot: 'seat',            file: 'stl%20files/7.%20Sadle.STL',                        color: 0x000000 },
+            { slot: 'pedalCrank',      file: 'stl%20files/8.%20Pedal.STL',                        color: 0xc0c0c0 },
+            { slot: 'pedalSprocket',   file: 'stl%20files/6.%20Sprocket.STL',                     color: 0xd4af37 },
+            { slot: 'backWheel',       file: 'stl%20files/5.%20Rim%20with%20Tire.STL',            color: 0x000000 },
+            { slot: 'backTireLever',   file: 'stl%20files/11.%20back%20tire%20liver%20.STL',      color: 0xc0c0c0 },
+            { slot: 'chain',           file: 'stl%20files/Chain.STL',                             color: 0xd4af37 },
         ];
         const INSTR_TEXT = [
             '1. Import the frame onto the screen.',
@@ -629,11 +635,13 @@
             '3. Drag the handlebar bush and seal the gap between the handlebar and the frame.',
             '4. Drag the handlebar and place it into the handlebar hole located at the front of the frame.',
             '5. Drag the front wheel and place it at the front side of the frame.',
-            '6. Drag the saddle/seat and place it into the saddle hole located at the center of the frame.',
-            '7. Drag the pedals and attach them to the sprocket lever present on the sprocket.',
-            '8. Drag the sprocket and place it into the sprocket hole located at the center of the frame.',
-            '9. Drag the back wheel and place it at the back side of the frame.',
-            '10. Drag the chain and place it around the back tire and near the sprocket hole.',
+            '6. Drag the front tire lever and place it into the front tire hole.',
+            '7. Drag the saddle/seat and place it into the saddle hole located at the center of the frame.',
+            '8. Drag the pedals and attach them to the sprocket lever present on the sprocket.',
+            '9. Drag the sprocket and place it into the sprocket hole located at the center of the frame.',
+            '10. Drag the back wheel and place it at the back side of the frame.',
+            '11. Drag the back tire lever and place it into the back tire hole.',
+            '12. Drag the chain and place it around the back tire and near the sprocket hole.',
         ];
 
         // Helper: get current step index (first incomplete step)
@@ -775,7 +783,9 @@
             pedalCrank: { fx: 0.50, fy: 0.10, fz: 0.58, orient: 'none', rx: 0, ry: Math.PI / 2, targetFrac: 0.11 },
             // 7. Sprocket: scale increased
             pedalSprocket: { fx: 0.50, fy: 0.08, fz: 0.5, orient: 'none', rx: Math.PI / 2, ry: 0, targetFrac: 0.30 },
-            // 6. Tire levers: scale increased
+            // Tire levers: one each for front and back
+            frontTireLever: { fx: 0.05, fy: 0.10, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.14 },
+            backTireLever:  { fx: 0.95, fy: 0.10, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.14 },
             backTireBolt: { fx: 0.95, fy: 0.10, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.14 },
             tireBolt: { fx: 0.05, fy: 0.10, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.14 },
             // Handlebar bushes: 1 spawned, forward lean to fit head tube
@@ -900,14 +910,16 @@
         // Slots where duplicates are always blocked (single-instance parts)
         const SINGLE_SLOTS = new Set([
             'frame', 'frontWheel', 'backWheel', 'seat', 'fork',
-            'handlebar', 'chain', 'pedalCrank', 'pedalSprocket', 'tireBush'
+            'handlebar', 'chain', 'pedalCrank', 'pedalSprocket', 'tireBush',
+            'frontTireLever', 'backTireLever'
         ]);
 
         // Friendly display names for the toast
         const PART_DISPLAY_NAME = {
             frame: 'Frame', frontWheel: 'Front Wheel', backWheel: 'Back Wheel',
             seat: 'Saddle', fork: 'Fork', handlebar: 'Handlebar', chain: 'Chain',
-            pedalCrank: 'Pedals', pedalSprocket: 'Sprocket', tireBush: 'Handlebar Bushes'
+            pedalCrank: 'Pedals', pedalSprocket: 'Sprocket', tireBush: 'Handlebar Bushes',
+            frontTireLever: 'Front Tire Lever', backTireLever: 'Back Tire Lever'
         };
 
         // ── Assembly-lock helpers ─────────────────────
@@ -1239,8 +1251,8 @@
         // ── AutoFix ──────────────────────────────────
         // Required slots — every one must have at least one mesh in allParts
         const REQUIRED_SLOTS = [
-            'frame', 'fork', 'tireBush', 'handlebar', 'frontWheel',
-            'seat', 'pedalCrank', 'pedalSprocket', 'backWheel', 'chain'
+            'frame', 'fork', 'tireBush', 'handlebar', 'frontWheel', 'frontTireLever',
+            'seat', 'pedalCrank', 'pedalSprocket', 'backWheel', 'backTireLever', 'chain'
         ];
 
         function showMissingAlert(missingNames) {
@@ -1253,7 +1265,8 @@
         const SLOT_LABELS = {
             frame: 'Frame', frontWheel: 'Front Wheel', backWheel: 'Back Wheel',
             seat: 'Saddle', fork: 'Fork', handlebar: 'Handlebar', chain: 'Chain',
-            pedalCrank: 'Pedals', pedalSprocket: 'Sprocket', tireBush: 'Handlebar Bushes'
+            pedalCrank: 'Pedals', pedalSprocket: 'Sprocket', tireBush: 'Handlebar Bushes',
+            frontTireLever: 'Front Tire Lever', backTireLever: 'Back Tire Lever'
         };
 
         function autoFix() {
