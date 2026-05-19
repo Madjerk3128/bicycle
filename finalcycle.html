@@ -213,6 +213,33 @@
             transform: translateY(0);
         }
 
+        /* ── Zoom buttons ──────────────────────────── */
+        .zoom-controls {
+            flex-shrink: 0;
+            display: flex;
+            gap: 6px;
+        }
+        .zoom-btn {
+            flex: 1;
+            background: rgba(30, 58, 95, 0.8);
+            border: 1.5px solid #1e3a5f;
+            border-radius: 8px;
+            color: #7ab8f5;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .zoom-btn:hover {
+            background: rgba(37, 99, 235, 0.3);
+            transform: translateY(-1px);
+        }
+        .zoom-btn:active {
+            transform: translateY(0);
+            background: rgba(37, 99, 235, 0.5);
+        }
+
         #hint {
             position: absolute;
             top: 14px;
@@ -536,13 +563,17 @@
         </div>
         <!-- ↑ scroll inside this list if items overflow -->
 
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">🔍+</button>
+            <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">🔍−</button>
+        </div>
         <button id="autofix-btn" onclick="autoFix()">⚡ AutoFix Assembly</button>
 
         <div id="trash-zone">🗑️ DRAG HERE TO DELETE</div>
     </div>
 
     <div id="viewport">
-        <div id="hint">Drag parts from panel · Scroll to zoom · Right-click drag = rotate part</div>
+        <div id="hint">Drag parts from panel · Use 🔍+/− to zoom · Right-click drag = rotate part</div>
         <div id="frame-hint">⚠️ Add the Frame first — other parts snap relative to it</div>
         <div id="dup-toast">⚠️ <span id="dup-toast-msg"></span></div>
         <div id="assembly-toast" style="display:none;position:absolute;top:64px;left:50%;transform:translateX(-50%);z-index:999;background:rgba(120,53,15,0.97);border:1.5px solid #d97706;color:#fbbf24;font-weight:700;font-size:0.88rem;padding:13px 22px;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,0.5);white-space:nowrap;letter-spacing:0.3px;">
@@ -819,6 +850,7 @@
 
             orbit = new THREE.OrbitControls(camera, renderer.domElement);
             orbit.enableDamping = true; orbit.dampingFactor = 0.06;
+            orbit.enableZoom = false; // Disable scroll/pinch zoom — use buttons instead
             orbit.minDistance = 100;
             orbit.maxDistance = 5000;
             orbit.target.set(0, 0, 0);
@@ -1164,6 +1196,24 @@
         }
 
         function setStatus(m) { document.getElementById('status').textContent = m; }
+
+        // ── Zoom buttons ─────────────────────────────
+        function zoomIn() {
+            const dir = new THREE.Vector3();
+            camera.getWorldDirection(dir);
+            const dist = camera.position.distanceTo(orbit.target);
+            if (dist > 120) {
+                camera.position.addScaledVector(dir, dist * 0.2);
+            }
+        }
+        function zoomOut() {
+            const dir = new THREE.Vector3();
+            camera.getWorldDirection(dir);
+            const dist = camera.position.distanceTo(orbit.target);
+            if (dist < 4500) {
+                camera.position.addScaledVector(dir, -dist * 0.2);
+            }
+        }
 
         function onResize() {
             const W = window.innerWidth - 500, H = window.innerHeight;
