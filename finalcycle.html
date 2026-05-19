@@ -784,7 +784,8 @@
             // 3. Seat: ry:PI flips it front-facing (about-turn horizontally)
             // Saddle: very light anticlockwise tilt from horizontal
             seat: { fx: 0.78, fy: 1.05, fz: 0.5, orient: 'none', rx: -Math.PI / 22, ry: Math.PI, targetFrac: 0.21 },
-            fork: { fx: 0.10, fy: 0.58, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.34 },
+            // Fork: positioned at front of frame (high-Z = head tube), steerer goes up
+            fork: { fx: 0.50, fy: 0.42, fz: 0.92, orient: 'none', rx: 0, ry: 0, rz: 0, targetFrac: 0.34 },
             // Handlebar: scale increased
             handlebar: { fx: 0.10, fy: 0.88, fz: 0.5, orient: 'none', rx: 0, ry: 0, targetFrac: 0.36 },
             // Chain: vertical about-turn (ry:-PI/2)
@@ -931,25 +932,33 @@
 
             allParts.forEach(mesh => {
                 const slot = mesh.userData.slot;
-                if (slot === 'frame' || slot === 'assembly') return; // don't move frame
+                if (slot === 'frame' || slot === 'assembly') return;
                 const def = SLOT_DEF[slot];
                 if (!def) return;
 
-                // Recalculate correct snap position
+                // Rescale to correct target size
+                const geo = mesh.geometry;
+                geo.computeBoundingBox();
+                const geoSize = new THREE.Vector3();
+                geo.boundingBox.getSize(geoSize);
+                const longest = Math.max(geoSize.x, geoSize.y, geoSize.z);
+                const targetSize = def.targetFrac * refLen;
+                mesh.scale.setScalar(targetSize / longest);
+
+                // Snap position
                 const snapX = frameBox.min.x + def.fx * fbSize.x;
                 const snapY = frameBox.min.y + def.fy * fbSize.y;
                 const snapZ = frameBox.min.z + def.fz * fbSize.z;
-
                 mesh.position.set(snapX, snapY, snapZ);
 
                 // Reapply orientation
-                const geo = mesh.geometry;
-                geo.computeBoundingBox();
                 applyOrientation(mesh, geo, def, slot);
+
+                console.log('[Fix]', slot, 'pos:', snapX.toFixed(1), snapY.toFixed(1), snapZ.toFixed(1), 'scale:', mesh.scale.x.toFixed(4));
             });
 
             rebuildDrag();
-            setStatus('✅ All parts snapped to correct positions!');
+            setStatus('✅ Parts fixed into correct positions!');
         }
 
         // ── Duplicate-part toast helper ───────────────
