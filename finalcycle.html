@@ -881,10 +881,6 @@
             vp.addEventListener('dragover', e => e.preventDefault());
             vp.addEventListener('drop', onDrop);
 
-            const trash = document.getElementById('trash-zone');
-            trash.addEventListener('dragover', e => { e.preventDefault(); trash.classList.add('hot'); });
-            trash.addEventListener('dragleave', () => trash.classList.remove('hot'));
-            trash.addEventListener('drop', e => { e.preventDefault(); trash.classList.remove('hot'); });
 
             window.addEventListener('resize', onResize);
             window.addEventListener('mousemove', onRightDrag);
