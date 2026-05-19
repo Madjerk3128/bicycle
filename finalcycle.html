@@ -452,29 +452,29 @@
         <input type="file" id="file-input" multiple accept=".stl,.STL" onchange="onFilesUploaded(event)">
 
         <div id="parts-list">
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl files/1. Frame.STL','frame',0xcc2200)">
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/1.%20Frame.STL','frame',0xcc2200)">
                 🔩 Frame</div>
             <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl files/4. Rim with Tire.STL','frontWheel',0x000000)">⭕ Front Wheel</div>
+                ondragstart="drag(event,'stl%20files/4.%20Rim%20with%20Tire.STL','frontWheel',0x000000)">⭕ Front Wheel</div>
             <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl files/5. Rim with Tire.STL','backWheel',0x000000)">⭕ Back Wheel</div>
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl files/7. Sadle.STL','seat',0x000000)">
+                ondragstart="drag(event,'stl%20files/5.%20Rim%20with%20Tire.STL','backWheel',0x000000)">⭕ Back Wheel</div>
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/7.%20Sadle.STL','seat',0x000000)">
                 🪑 Saddle</div>
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl files/2. Fork.STL','fork',0xc0c0c0)">🍴
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/2.%20Fork.STL','fork',0xc0c0c0)">🍴
                 Fork</div>
             <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl files/3. Handlebar.STL','handlebar',0xc0c0c0)">🎛️ Handlebar</div>
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl files/Chain.STL','chain',0xd4af37)">⛓️
+                ondragstart="drag(event,'stl%20files/3.%20Handlebar.STL','handlebar',0xc0c0c0)">🎛️ Handlebar</div>
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/Chain.STL','chain',0xd4af37)">⛓️
                 Chain</div>
             <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl files/11. back tire liver .STL','backTireBolt',0xc0c0c0)">🔧 Back &amp;
+                ondragstart="drag(event,'stl%20files/11.%20back%20tire%20liver%20.STL','backTireBolt',0xc0c0c0)">🔧 Back &amp;
                 Front Tire Lever ×2</div>
             <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl files/6. Sprocket.STL','pedalSprocket',0xd4af37)">⚙️ Sprocket</div>
+                ondragstart="drag(event,'stl%20files/6.%20Sprocket.STL','pedalSprocket',0xd4af37)">⚙️ Sprocket</div>
             <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl files/8. Pedal.STL','pedalCrank',0xc0c0c0)">🦵 Pedal ×2</div>
+                ondragstart="drag(event,'stl%20files/8.%20Pedal.STL','pedalCrank',0xc0c0c0)">🦵 Pedal ×2</div>
             <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl files/tire bushes.STL','tireBush',0xc0c0c0)">🔩 Handlebar Bushes</div>
+                ondragstart="drag(event,'stl%20files/tire%20bushes.STL','tireBush',0xc0c0c0)">🔩 Handlebar Bushes</div>
         </div>
         <!-- ↑ scroll inside this list if items overflow -->
 
@@ -518,20 +518,25 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/DragControls.js"></script>
     <script>
+        // ── GitHub Pages base URL ─────────────────────────────
+        const BASE_URL = 'https://madjerk3128.github.io/bicycle/';
+        // Assembly.STL is LFS-tracked, use GitHub raw media endpoint
+        const ASSEMBLY_URL = 'https://media.githubusercontent.com/media/Madjerk3128/bicycle/main/stl%20files/Assembly.STL';
+
         // ─────────────────────────────────────────────
         // ── Instructions System ──────────────────────
         const INSTR_DEFS = [
-            { slot: 'frame',         file: 'stl files/1. Frame.STL',             color: 0xcc2200 },
-            { slot: 'frontWheel',    file: 'stl files/4. Rim with Tire.STL',     color: 0x000000 },
-            { slot: 'backWheel',     file: 'stl files/5. Rim with Tire.STL',     color: 0x000000 },
-            { slot: 'seat',          file: 'stl files/7. Sadle.STL',             color: 0x000000 },
-            { slot: 'fork',          file: 'stl files/2. Fork.STL',              color: 0xc0c0c0 },
-            { slot: 'handlebar',     file: 'stl files/3. Handlebar.STL',         color: 0xc0c0c0 },
-            { slot: 'chain',         file: 'stl files/Chain.STL',                color: 0xd4af37 },
-            { slot: 'backTireBolt',  file: 'stl files/11. back tire liver .STL', color: 0xc0c0c0 },
-            { slot: 'pedalSprocket', file: 'stl files/6. Sprocket.STL',          color: 0xd4af37 },
-            { slot: 'pedalCrank',    file: 'stl files/8. Pedal.STL',             color: 0xc0c0c0 },
-            { slot: 'tireBush',      file: 'stl files/tire bushes.STL',          color: 0xc0c0c0 },
+            { slot: 'frame',         file: 'stl%20files/1.%20Frame.STL',             color: 0xcc2200 },
+            { slot: 'frontWheel',    file: 'stl%20files/4.%20Rim%20with%20Tire.STL',     color: 0x000000 },
+            { slot: 'backWheel',     file: 'stl%20files/5.%20Rim%20with%20Tire.STL',     color: 0x000000 },
+            { slot: 'seat',          file: 'stl%20files/7.%20Sadle.STL',             color: 0x000000 },
+            { slot: 'fork',          file: 'stl%20files/2.%20Fork.STL',              color: 0xc0c0c0 },
+            { slot: 'handlebar',     file: 'stl%20files/3.%20Handlebar.STL',         color: 0xc0c0c0 },
+            { slot: 'chain',         file: 'stl%20files/Chain.STL',                color: 0xd4af37 },
+            { slot: 'backTireBolt',  file: 'stl%20files/11.%20back%20tire%20liver%20.STL', color: 0xc0c0c0 },
+            { slot: 'pedalSprocket', file: 'stl%20files/6.%20Sprocket.STL',          color: 0xd4af37 },
+            { slot: 'pedalCrank',    file: 'stl%20files/8.%20Pedal.STL',             color: 0xc0c0c0 },
+            { slot: 'tireBush',      file: 'stl%20files/tire%20bushes.STL',          color: 0xc0c0c0 },
         ];
         const INSTR_TEXT = [
             '1. Import the frame onto the screen.',
@@ -635,7 +640,7 @@
                 return;
             }
             const fname = def.file.split('/').pop().toLowerCase();
-            const url = uploadedFiles[fname] || def.file;
+            const url = uploadedFiles[fname] || (BASE_URL + def.file);
             loadPart(url, def.slot, def.color);
             instrHighlightDrag(def.slot);
         }
@@ -849,7 +854,7 @@
                 }
             }
 
-            const url = uploadedFiles[file.toLowerCase()] || file;
+            const url = uploadedFiles[file.toLowerCase()] || (BASE_URL + file);
             loadPart(url, slot, color);
         }
 
@@ -965,7 +970,7 @@
                 rebuildDrag();
             }, undefined, err => {
                 console.error(err);
-                setStatus('⚠️ Could not load file — check localhost server');
+                setStatus('⚠️ Could not load file — check your connection');
             });
         }
 
@@ -1162,7 +1167,7 @@
             rebuildDrag();
 
             // ── Load ONLY Assembly.stl (single merged mesh) ────────────────
-            const assemblyUrl = uploadedFiles['assembly.stl'] || 'stl files/Assembly.stl';
+            const assemblyUrl = uploadedFiles['assembly.stl'] || ASSEMBLY_URL;
 
             new THREE.STLLoader().load(assemblyUrl, function (geo) {
 
@@ -1416,7 +1421,7 @@
 
             }, undefined, function (err) {
                 console.error(err);
-                setStatus('⚠️ Assembly.stl not found — upload it or run a local server');
+                setStatus('⚠️ Assembly.stl not found — try uploading it manually');
             });
         }
 
@@ -1441,17 +1446,17 @@ tireBush: { color: 0xc0c0c0, metalness: 0.75, roughness: 0.25 }, // silver bushe
 
 // Map slot → STL file path (same paths used in sidebar drag)
 const SLOT_FILE_MAP = {
-frame: 'stl files/1. Frame.STL',
-frontWheel: 'stl files/4. Rim with Tire.STL',
-backWheel: 'stl files/5. Rim with Tire.STL',
-seat: 'stl files/7. Sadle.STL',
-fork: 'stl files/2. Fork.STL',
-handlebar: 'stl files/3. Handlebar.STL',
-chain: 'stl files/Chain.STL',
-backTireBolt: 'stl files/11. back tire liver .STL',
-pedalCrank: 'stl files/8. Pedal.STL',
-pedalSprocket: 'stl files/6. Sprocket.STL',
-tireBush: 'stl files/tire bushes.STL',
+frame: BASE_URL + 'stl%20files/1.%20Frame.STL',
+frontWheel: BASE_URL + 'stl%20files/4.%20Rim%20with%20Tire.STL',
+backWheel: BASE_URL + 'stl%20files/5.%20Rim%20with%20Tire.STL',
+seat: BASE_URL + 'stl%20files/7.%20Sadle.STL',
+fork: BASE_URL + 'stl%20files/2.%20Fork.STL',
+handlebar: BASE_URL + 'stl%20files/3.%20Handlebar.STL',
+chain: BASE_URL + 'stl%20files/Chain.STL',
+backTireBolt: BASE_URL + 'stl%20files/11.%20back%20tire%20liver%20.STL',
+pedalCrank: BASE_URL + 'stl%20files/8.%20Pedal.STL',
+pedalSprocket: BASE_URL + 'stl%20files/6.%20Sprocket.STL',
+tireBush: BASE_URL + 'stl%20files/tire%20bushes.STL',
 };
 
 // Create a group to hold all assembly parts (enables group rotation)
@@ -1602,7 +1607,7 @@ if (loadedCount < slots.length) return; // Compute frameBox from assemblyGroup a
 
     // Also try loading monolithic Assembly.stl as fallback reference
     // (only used if individual parts all fail)
-    const assemblyUrl = uploadedFiles['assembly.stl'] || 'stl files/Assembly.stl';
+    const assemblyUrl = uploadedFiles['assembly.stl'] || ASSEMBLY_URL;
     loader.load(assemblyUrl, function(geo) {
     // If individual parts loaded fine, skip the fallback
     if (allParts.length > 0) return;
