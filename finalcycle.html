@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Bicycle Assembler</title>
     <style>
         * {
@@ -439,6 +440,63 @@
         }
         #instr-bar-wrap { margin-top: 5px; height: 4px; background: #0d2137; border-radius: 4px; overflow: hidden; }
         #instr-bar-fill { height: 100%; background: linear-gradient(90deg,#3b82f6,#7c3aed); border-radius: 4px; transition: width 0.4s ease; width: 0%; }
+
+        /* ── Mobile toggle buttons ─────────────────── */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        }
+        #toggle-sidebar { bottom: 20px; left: 20px; }
+        #toggle-instructions { bottom: 20px; right: 20px; background: #7c3aed; }
+
+        /* ── Mobile responsive ────────────────────── */
+        @media (max-width: 900px) {
+            body { flex-direction: column; overflow: auto; }
+
+            #sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                width: 240px;
+                height: 100vh;
+                z-index: 100;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            #sidebar.open { transform: translateX(0); }
+
+            #instructions {
+                position: fixed;
+                top: 0; right: 0;
+                width: 260px;
+                height: 100vh;
+                z-index: 100;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+            #instructions.open { transform: translateX(0); }
+
+            #viewport {
+                width: 100vw;
+                height: 100vh;
+            }
+
+            .mobile-toggle { display: flex; align-items: center; justify-content: center; }
+
+            #hint { font-size: 0.6rem; padding: 5px 10px; }
+            #frame-hint { font-size: 0.6rem; padding: 4px 10px; }
+            #status { font-size: 0.65rem; padding: 4px 12px; }
+            #ui-overlay { bottom: 70px; }
+        }
     </style>
 </head>
 
@@ -1427,213 +1485,31 @@
 
         init();
     </script>
-</body>
 
-</html>
+    <!-- Mobile toggle buttons -->
+    <button class="mobile-toggle" id="toggle-sidebar" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('instructions').classList.remove('open');">🚲</button>
+    <button class="mobile-toggle" id="toggle-instructions" onclick="document.getElementById('instructions').classList.toggle('open');document.getElementById('sidebar').classList.remove('open');">📋</button>
 
-frontWheel: { color: 0x000000, metalness: 0.10, roughness: 0.90 }, // full black tyre
-backWheel: { color: 0x000000, metalness: 0.10, roughness: 0.90 }, // full black tyre
-seat: { color: 0x000000, metalness: 0.05, roughness: 0.95 }, // full black saddle
-fork: { color: 0xc0c0c0, metalness: 0.80, roughness: 0.20 }, // silver fork
-handlebar: { color: 0xc0c0c0, metalness: 0.80, roughness: 0.20 }, // silver handlebar
-chain: { color: 0xd4af37, metalness: 0.85, roughness: 0.20 }, // gold chain
-backTireBolt: { color: 0xff6600, metalness: 0.4, roughness: 0.5 }, // orange lever
-tireBolt: { color: 0xff6600, metalness: 0.4, roughness: 0.5 },
-pedalCrank: { color: 0x888888, metalness: 0.7, roughness: 0.3 }, // brushed aluminium
-pedalSprocket:{ color: 0xd4af37, metalness: 0.85, roughness: 0.15 }, // gold sprocket
-tireBush: { color: 0xc0c0c0, metalness: 0.75, roughness: 0.25 }, // silver bushes
-};
+    <script>
+        // Mobile-aware resize
+        const origResize = onResize;
+        onResize = function() {
+            const isMobile = window.innerWidth <= 900;
+            const W = isMobile ? window.innerWidth : window.innerWidth - 500;
+            const H = window.innerHeight;
+            camera.aspect = W / H;
+            camera.updateProjectionMatrix();
+            renderer.setSize(W, H);
+        };
+        window.addEventListener('resize', onResize);
+        // Trigger once
+        onResize();
 
-// Map slot → STL file path (same paths used in sidebar drag)
-const SLOT_FILE_MAP = {
-frame: BASE_URL + 'stl%20files/1.%20Frame.STL',
-frontWheel: BASE_URL + 'stl%20files/4.%20Rim%20with%20Tire.STL',
-backWheel: BASE_URL + 'stl%20files/5.%20Rim%20with%20Tire.STL',
-seat: BASE_URL + 'stl%20files/7.%20Sadle.STL',
-fork: BASE_URL + 'stl%20files/2.%20Fork.STL',
-handlebar: BASE_URL + 'stl%20files/3.%20Handlebar.STL',
-chain: BASE_URL + 'stl%20files/Chain.STL',
-backTireBolt: BASE_URL + 'stl%20files/11.%20back%20tire%20liver%20.STL',
-pedalCrank: BASE_URL + 'stl%20files/8.%20Pedal.STL',
-pedalSprocket: BASE_URL + 'stl%20files/6.%20Sprocket.STL',
-tireBush: BASE_URL + 'stl%20files/tire%20bushes.STL',
-};
-
-// Create a group to hold all assembly parts (enables group rotation)
-assemblyGroup = new THREE.Group();
-scene.add(assemblyGroup);
-assemblyRotating = false;
-
-const slots = Object.keys(SLOT_FILE_MAP);
-let loadedCount = 0;
-let frameRef = null; // will hold frame mesh for snap reference
-
-function tryFinalize() {
-if (loadedCount < slots.length) return; // Compute frameBox from assemblyGroup assemblyGroup.updateMatrixWorld(true);
-    frameBox=new THREE.Box3().setFromObject(assemblyGroup); // Re-center the group vertically so it sits just above the
-    grid const boxSize=new THREE.Vector3(); frameBox.getSize(boxSize); assemblyGroup.position.y=-frameBox.min.y - 220 +
-    10; assemblyGroup.updateMatrixWorld(true); frameBox=new THREE.Box3().setFromObject(assemblyGroup); rebuildDrag();
-    const fh=document.getElementById('frame-hint'); if (fh) fh.style.display='none' ; // ── NO auto-rotation
-    ──────────────────────────────────────── assemblyRotating=false; setStatus('✅ Assembly loaded — frame 🔴 red · tires
-    ⚫ black · sprocket+chain 🟡 gold'); } // Stop spin on drag
-    document.getElementById('viewport').addEventListener('mousedown', ()=> {
-    assemblyRotating = false;
-    }, { once: false });
-
-    const loader = new THREE.STLLoader();
-
-    slots.forEach(slot => {
-    const filePath = uploadedFiles[SLOT_FILE_MAP[slot].toLowerCase()] || SLOT_FILE_MAP[slot];
-    const colorDef = PART_COLOR_MAP[slot];
-    const slotDef = SLOT_DEF[slot];
-
-    loader.load(filePath, function(geo) {
-    geo.center();
-    geo.computeVertexNormals();
-    geo.computeBoundingBox();
-
-    const size = new THREE.Vector3();
-    geo.boundingBox.getSize(size);
-    const longest = Math.max(size.x, size.y, size.z);
-
-    const mat = new THREE.MeshStandardMaterial({
-    color: colorDef.color,
-    metalness: colorDef.metalness,
-    roughness: colorDef.roughness,
-    envMapIntensity: 1.0,
-    });
-
-    if (slot === 'frame') {
-    // Frame: scale to FRAME_TARGET, place at origin
-    const sc = FRAME_TARGET / longest;
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.scale.setScalar(sc);
-    mesh.rotation.set(slotDef.rx||0, slotDef.ry||0, slotDef.rz||0);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.userData.slot = slot;
-    assemblyGroup.add(mesh);
-    allParts.push(mesh);
-
-    // Build temporary frameBox for other parts to snap to
-    mesh.updateMatrixWorld(true);
-    frameRef = mesh;
-    const tempBox = new THREE.Box3().setFromObject(mesh);
-    frameBox = tempBox;
-    loadedCount++;
-    tryFinalize();
-
-    } else {
-    // Wait until frame is ready
-    const tryPlace = () => {
-    if (!frameBox) { setTimeout(tryPlace, 80); return; }
-
-    const fbSize = new THREE.Vector3();
-    frameBox.getSize(fbSize);
-    const refLen = Math.max(fbSize.x, fbSize.y, fbSize.z);
-    const targetSize = slotDef.targetFrac * refLen;
-    const sc = targetSize / longest;
-
-    // Spawn mirrored pedals
-    if (slot === 'pedalCrank') {
-    const zOff = fbSize.z * 0.12;
-    const snapX = frameBox.min.x + slotDef.fx * fbSize.x;
-    const snapY = frameBox.min.y + slotDef.fy * fbSize.y;
-    const snapZ = frameBox.min.z + slotDef.fz * fbSize.z;
-
-    const mR = new THREE.Mesh(geo, mat);
-    mR.scale.setScalar(sc);
-    mR.position.set(snapX, snapY, snapZ + zOff);
-    mR.rotation.y = Math.PI / 2;
-    mR.castShadow = true; mR.receiveShadow = true;
-    mR.userData.slot = slot;
-    assemblyGroup.add(mR); allParts.push(mR);
-
-    const mL = new THREE.Mesh(geo, mat.clone());
-    mL.scale.setScalar(sc);
-    mL.position.set(snapX, snapY, snapZ - zOff);
-    mL.rotation.y = -Math.PI / 2;
-    mL.castShadow = true; mL.receiveShadow = true;
-    mL.userData.slot = slot;
-    assemblyGroup.add(mL); allParts.push(mL);
-    loadedCount++; tryFinalize(); return;
-    }
-
-    // Spawn tire levers ×2
-    if (slot === 'backTireBolt') {
-    const snapX = frameBox.min.x + slotDef.fx * fbSize.x;
-    const snapY = frameBox.min.y + slotDef.fy * fbSize.y;
-    const snapZ = frameBox.min.z + slotDef.fz * fbSize.z;
-
-    const mB = new THREE.Mesh(geo, mat);
-    mB.scale.setScalar(sc); mB.position.set(snapX, snapY, snapZ);
-    mB.castShadow = true; mB.receiveShadow = true;
-    mB.userData.slot = slot;
-    assemblyGroup.add(mB); allParts.push(mB);
-
-    const snapXF = frameBox.min.x + 0.05 * fbSize.x;
-    const mF = new THREE.Mesh(geo, mat.clone());
-    mF.scale.setScalar(sc); mF.position.set(snapXF, snapY, snapZ);
-    mF.castShadow = true; mF.receiveShadow = true;
-    mF.userData.slot = 'tireBolt';
-    assemblyGroup.add(mF); allParts.push(mF);
-    loadedCount++; tryFinalize(); return;
-    }
-
-    const snapX = frameBox.min.x + slotDef.fx * fbSize.x;
-    const snapY = frameBox.min.y + slotDef.fy * fbSize.y;
-    const snapZ = frameBox.min.z + slotDef.fz * fbSize.z;
-
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.scale.setScalar(sc);
-    mesh.position.set(snapX, snapY, snapZ);
-    applyOrientation(mesh, geo, slotDef, slot);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.userData.slot = slot;
-    assemblyGroup.add(mesh);
-    allParts.push(mesh);
-    loadedCount++;
-    tryFinalize();
-    };
-    tryPlace();
-    }
-    }, undefined, err => {
-    console.warn('Could not load', filePath, err);
-    loadedCount++; // count it anyway so finalize still fires
-    tryFinalize();
-    });
-    });
-
-    // Also try loading monolithic Assembly.stl as fallback reference
-    // (only used if individual parts all fail)
-    const assemblyUrl = uploadedFiles['assembly.stl'] || ASSEMBLY_URL;
-    loader.load(assemblyUrl, function(geo) {
-    // If individual parts loaded fine, skip the fallback
-    if (allParts.length > 0) return;
-    geo.center();
-    geo.computeVertexNormals();
-    geo.computeBoundingBox();
-    const size2 = new THREE.Vector3();
-    geo.boundingBox.getSize(size2);
-    const sc2 = FRAME_TARGET / Math.max(size2.x, size2.y, size2.z);
-    const mat2 = new THREE.MeshStandardMaterial({
-    color: 0x4a90d9, metalness: 0.4, roughness: 0.5
-    });
-    const mesh2 = new THREE.Mesh(geo, mat2);
-    mesh2.scale.setScalar(sc2);
-    mesh2.castShadow = true; mesh2.receiveShadow = true;
-    mesh2.userData.slot = 'assembly';
-    assemblyGroup.add(mesh2); allParts.push(mesh2);
-    mesh2.updateMatrixWorld(true);
-    frameBox = new THREE.Box3().setFromObject(mesh2);
-    rebuildDrag();
-    setStatus('✅ Assembly.stl loaded (monolithic)');
-    }, undefined, () => { /* silent fallback failure */ });
-    }
-
-    init();
+        // Close panels when tapping viewport on mobile
+        document.getElementById('viewport').addEventListener('touchstart', function() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('instructions').classList.remove('open');
+        });
     </script>
-    </body>
-
-    </html>
+</body>
+</html>
