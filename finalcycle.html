@@ -1230,24 +1230,9 @@
             updateInstructions();
         }
 
-        // ── Trash detection ──────────────────────────
-        function checkTrash(obj) {
-            const v = obj.position.clone().project(camera);
-            const sx = (v.x + 1) * (window.innerWidth - 240) / 2 + 240;
-            document.getElementById('trash-zone').classList.toggle('hot', sx < 260);
-        }
-        function maybeDelete(obj) {
-            const v = obj.position.clone().project(camera);
-            const sx = (v.x + 1) * (window.innerWidth - 240) / 2 + 240;
-            if (sx < 260) {
-                if (obj.userData.slot === 'frame') { frameBox = null; frameScale = 1; }
-                scene.remove(obj);
-                allParts.splice(allParts.indexOf(obj), 1);
-                rebuildDrag();
-                setStatus('Part deleted');
-            }
-            document.getElementById('trash-zone').classList.remove('hot');
-        }
+        // ── Trash detection (disabled — click mode) ──
+        function checkTrash(obj) { }
+        function maybeDelete(obj) { }
 
         // ── Right-click rotate individual part ───────
         function onRightDrag(e) {
