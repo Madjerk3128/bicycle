@@ -539,27 +539,24 @@
         <div id="parts-list">
             <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/1.%20Frame.STL','frame',0xcc2200)">
                 🔩 Frame</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/4.%20Rim%20with%20Tire.STL','frontWheel',0x000000)">⭕ Front Wheel</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/5.%20Rim%20with%20Tire.STL','backWheel',0x000000)">⭕ Back Wheel</div>
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/7.%20Sadle.STL','seat',0x000000)">
-                🪑 Saddle</div>
             <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/2.%20Fork.STL','fork',0xc0c0c0)">🍴
                 Fork</div>
             <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl%20files/tire%20bushes.STL','tireBush',0xc0c0c0)">🔩 Handlebar Bushes</div>
+            <div class="part-item" draggable="true"
                 ondragstart="drag(event,'stl%20files/3.%20Handlebar.STL','handlebar',0xc0c0c0)">🎛️ Handlebar</div>
-            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/Chain.STL','chain',0xd4af37)">⛓️
-                Chain</div>
             <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/11.%20back%20tire%20liver%20.STL','backTireBolt',0xc0c0c0)">🔧 Back &amp;
-                Front Tire Lever ×2</div>
-            <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/6.%20Sprocket.STL','pedalSprocket',0xd4af37)">⚙️ Sprocket</div>
+                ondragstart="drag(event,'stl%20files/4.%20Rim%20with%20Tire.STL','frontWheel',0x000000)">⭕ Front Wheel</div>
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/7.%20Sadle.STL','seat',0x000000)">
+                🪑 Saddle</div>
             <div class="part-item" draggable="true"
                 ondragstart="drag(event,'stl%20files/8.%20Pedal.STL','pedalCrank',0xc0c0c0)">🦵 Pedal ×2</div>
             <div class="part-item" draggable="true"
-                ondragstart="drag(event,'stl%20files/tire%20bushes.STL','tireBush',0xc0c0c0)">🔩 Handlebar Bushes</div>
+                ondragstart="drag(event,'stl%20files/6.%20Sprocket.STL','pedalSprocket',0xd4af37)">⚙️ Sprocket</div>
+            <div class="part-item" draggable="true"
+                ondragstart="drag(event,'stl%20files/5.%20Rim%20with%20Tire.STL','backWheel',0x000000)">⭕ Back Wheel</div>
+            <div class="part-item" draggable="true" ondragstart="drag(event,'stl%20files/Chain.STL','chain',0xd4af37)">⛓️
+                Chain</div>
         </div>
         <!-- ↑ scroll inside this list if items overflow -->
 
@@ -597,7 +594,7 @@
         <h2>📋 Instructions</h2>
         <div id="instr-list"></div>
         <div id="instr-footer">
-            <span id="instr-prog-text">Step 0 / 11</span>
+            <span id="instr-prog-text">Step 0 / 10</span>
             <div id="instr-bar-wrap"><div id="instr-bar-fill"></div></div>
         </div>
     </div>
@@ -616,30 +613,38 @@
         // ── Instructions System ──────────────────────
         const INSTR_DEFS = [
             { slot: 'frame',         file: 'stl%20files/1.%20Frame.STL',             color: 0xcc2200 },
-            { slot: 'frontWheel',    file: 'stl%20files/4.%20Rim%20with%20Tire.STL',     color: 0x000000 },
-            { slot: 'backWheel',     file: 'stl%20files/5.%20Rim%20with%20Tire.STL',     color: 0x000000 },
-            { slot: 'seat',          file: 'stl%20files/7.%20Sadle.STL',             color: 0x000000 },
             { slot: 'fork',          file: 'stl%20files/2.%20Fork.STL',              color: 0xc0c0c0 },
-            { slot: 'handlebar',     file: 'stl%20files/3.%20Handlebar.STL',         color: 0xc0c0c0 },
-            { slot: 'chain',         file: 'stl%20files/Chain.STL',                color: 0xd4af37 },
-            { slot: 'backTireBolt',  file: 'stl%20files/11.%20back%20tire%20liver%20.STL', color: 0xc0c0c0 },
-            { slot: 'pedalSprocket', file: 'stl%20files/6.%20Sprocket.STL',          color: 0xd4af37 },
-            { slot: 'pedalCrank',    file: 'stl%20files/8.%20Pedal.STL',             color: 0xc0c0c0 },
             { slot: 'tireBush',      file: 'stl%20files/tire%20bushes.STL',          color: 0xc0c0c0 },
+            { slot: 'handlebar',     file: 'stl%20files/3.%20Handlebar.STL',         color: 0xc0c0c0 },
+            { slot: 'frontWheel',    file: 'stl%20files/4.%20Rim%20with%20Tire.STL', color: 0x000000 },
+            { slot: 'seat',          file: 'stl%20files/7.%20Sadle.STL',             color: 0x000000 },
+            { slot: 'pedalCrank',    file: 'stl%20files/8.%20Pedal.STL',             color: 0xc0c0c0 },
+            { slot: 'pedalSprocket', file: 'stl%20files/6.%20Sprocket.STL',          color: 0xd4af37 },
+            { slot: 'backWheel',     file: 'stl%20files/5.%20Rim%20with%20Tire.STL', color: 0x000000 },
+            { slot: 'chain',         file: 'stl%20files/Chain.STL',                  color: 0xd4af37 },
         ];
         const INSTR_TEXT = [
             '1. Import the frame onto the screen.',
-            '2. Drag the front wheel and place it at the front side of the frame.',
-            '3. Drag the back wheel and place it at the back side of the frame.',
-            '4. Drag the saddle/seat and place it into the saddle hole located at the center of the frame.',
-            '5. Drag the fork and place it into the fork hole located at the front of the frame.',
-            '6. Drag the handlebar and place it into the handlebar hole located at the front of the frame.',
-            '7. Drag the chain and place it around the back tire and near the sprocket hole located at the center of the frame.',
-            '8. Drag the front and back levers and place them into their respective tire holes located at the front and back of the frame.',
-            '9. Drag the sprocket and place it into the sprocket hole located at the center of the frame.',
-            '10. Drag the pedals and attach them to the sprocket lever present on the sprocket.',
-            '11. Drag the handlebar bush and seal the gap between the handlebar and the frame.',
+            '2. Drag the fork and place it into the fork hole located at the front of the frame.',
+            '3. Drag the handlebar bush and seal the gap between the handlebar and the frame.',
+            '4. Drag the handlebar and place it into the handlebar hole located at the front of the frame.',
+            '5. Drag the front wheel and place it at the front side of the frame.',
+            '6. Drag the saddle/seat and place it into the saddle hole located at the center of the frame.',
+            '7. Drag the pedals and attach them to the sprocket lever present on the sprocket.',
+            '8. Drag the sprocket and place it into the sprocket hole located at the center of the frame.',
+            '9. Drag the back wheel and place it at the back side of the frame.',
+            '10. Drag the chain and place it around the back tire and near the sprocket hole.',
         ];
+
+        // Helper: get current step index (first incomplete step)
+        function getCurrentStep() {
+            const present = new Set(allParts.map(m => m.userData.slot));
+            if (present.has('assembly')) return INSTR_DEFS.length;
+            for (let i = 0; i < INSTR_DEFS.length; i++) {
+                if (!present.has(INSTR_DEFS[i].slot)) return i;
+            }
+            return INSTR_DEFS.length;
+        }
 
         let _instrDragTimer = null;
 
@@ -714,18 +719,16 @@
         }
 
         function onInstrClick(def, idx) {
-            // Block if AutoFix assembly is already on screen
             if (isAssembled()) { showAssemblyLockedToast(); return; }
-            // Frame can be placed without pre-condition; all others need the frame first
-            if (def.slot !== 'frame' && !frameBox) {
-                setStatus('⚠️ Place the Frame first!');
-                const fe = document.getElementById('instr-frame');
-                if (fe) { fe.classList.add('drag-hl'); setTimeout(() => fe.classList.remove('drag-hl'), 1400); }
+            // ── Strict step-by-step: only allow current step ──
+            const curStep = getCurrentStep();
+            if (idx !== curStep) {
+                if (idx < curStep) { setStatus('✅ Step ' + (idx+1) + ' already done'); }
+                else { setStatus('⚠️ Complete step ' + (curStep+1) + ' first!'); }
                 return;
             }
-            const present = new Set(allParts.map(m => m.userData.slot));
-            if (present.has(def.slot) || (def.slot === 'backTireBolt' && (present.has('backTireBolt') || present.has('tireBolt')))) {
-                setStatus('⚠️ Already added: ' + INSTR_TEXT[idx].split('.')[0]);
+            if (def.slot !== 'frame' && !frameBox) {
+                setStatus('⚠️ Place the Frame first!');
                 return;
             }
             const fname = def.file.split('/').pop().toLowerCase();
@@ -897,15 +900,14 @@
         // Slots where duplicates are always blocked (single-instance parts)
         const SINGLE_SLOTS = new Set([
             'frame', 'frontWheel', 'backWheel', 'seat', 'fork',
-            'handlebar', 'chain', 'pedalCrank', 'pedalSprocket', 'backTireBolt', 'tireBush'
+            'handlebar', 'chain', 'pedalCrank', 'pedalSprocket', 'tireBush'
         ]);
 
         // Friendly display names for the toast
         const PART_DISPLAY_NAME = {
             frame: 'Frame', frontWheel: 'Front Wheel', backWheel: 'Back Wheel',
             seat: 'Saddle', fork: 'Fork', handlebar: 'Handlebar', chain: 'Chain',
-            pedalCrank: 'Pedals', pedalSprocket: 'Sprocket',
-            backTireBolt: 'Tire Levers', tireBush: 'Handlebar Bushes'
+            pedalCrank: 'Pedals', pedalSprocket: 'Sprocket', tireBush: 'Handlebar Bushes'
         };
 
         // ── Assembly-lock helpers ─────────────────────
@@ -929,15 +931,18 @@
             if (!raw) return;
             const { file, slot, color } = JSON.parse(raw);
 
+            // ── Strict step-by-step enforcement ──────────────────────────────
+            const curStep = getCurrentStep();
+            const stepIdx = INSTR_DEFS.findIndex(d => d.slot === slot);
+            if (stepIdx >= 0 && stepIdx !== curStep) {
+                if (stepIdx < curStep) { showDuplicateToast(PART_DISPLAY_NAME[slot] || slot); }
+                else { setStatus('⚠️ Complete step ' + (curStep+1) + ' first! (' + INSTR_TEXT[curStep].split('. ')[1] + ')'); }
+                return;
+            }
+
             // ── Duplicate guard ──────────────────────────────────────────────
             if (SINGLE_SLOTS.has(slot)) {
-                const alreadyAdded = allParts.some(m =>
-                    m.userData.slot === slot ||
-                    // pedal pair uses same slot for both meshes
-                    (slot === 'pedalCrank' && m.userData.slot === 'pedalCrank') ||
-                    // tire lever pair uses backTireBolt / tireBolt
-                    (slot === 'backTireBolt' && (m.userData.slot === 'backTireBolt' || m.userData.slot === 'tireBolt'))
-                );
+                const alreadyAdded = allParts.some(m => m.userData.slot === slot);
                 if (alreadyAdded) {
                     showDuplicateToast(PART_DISPLAY_NAME[slot] || slot);
                     return;
@@ -1234,9 +1239,8 @@
         // ── AutoFix ──────────────────────────────────
         // Required slots — every one must have at least one mesh in allParts
         const REQUIRED_SLOTS = [
-            'frame', 'frontWheel', 'backWheel', 'seat', 'fork',
-            'handlebar', 'chain', 'backTireBolt', 'pedalCrank',
-            'pedalSprocket', 'tireBush'
+            'frame', 'fork', 'tireBush', 'handlebar', 'frontWheel',
+            'seat', 'pedalCrank', 'pedalSprocket', 'backWheel', 'chain'
         ];
 
         function showMissingAlert(missingNames) {
@@ -1249,8 +1253,7 @@
         const SLOT_LABELS = {
             frame: 'Frame', frontWheel: 'Front Wheel', backWheel: 'Back Wheel',
             seat: 'Saddle', fork: 'Fork', handlebar: 'Handlebar', chain: 'Chain',
-            backTireBolt: 'Tire Levers', pedalCrank: 'Pedals',
-            pedalSprocket: 'Sprocket', tireBush: 'Handlebar Bushes'
+            pedalCrank: 'Pedals', pedalSprocket: 'Sprocket', tireBush: 'Handlebar Bushes'
         };
 
         function autoFix() {
