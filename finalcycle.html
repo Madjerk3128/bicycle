@@ -139,8 +139,30 @@
         #viewport {
             flex: 1;
             position: relative;
-            background: #000000;
+            background: #FFFFFF;
         }
+
+        /* ── Loading popup ─────────────────────────── */
+        #loading-popup {
+            display: none;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 500;
+            background: rgba(0,0,0,0.88);
+            border: 2px solid #3b82f6;
+            border-radius: 16px;
+            padding: 28px 44px;
+            text-align: center;
+            box-shadow: 0 8px 40px rgba(59,130,246,0.4);
+            animation: fadeInPop 0.25s ease;
+        }
+        #loading-popup .load-icon { font-size: 2rem; margin-bottom: 10px; animation: spin 1.2s linear infinite; }
+        #loading-popup .load-text { color: #93c5fd; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.3px; }
+        #loading-popup .load-bar-wrap { margin-top: 14px; width: 220px; height: 4px; background: #1e3a5f; border-radius: 4px; overflow: hidden; }
+        #loading-popup .load-bar { height: 100%; width: 30%; background: linear-gradient(90deg,#3b82f6,#7c3aed); border-radius: 4px; animation: loadSlide 1.5s ease-in-out infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes loadSlide { 0% { margin-left: 0; width: 30%; } 50% { margin-left: 50%; width: 50%; } 100% { margin-left: 0; width: 30%; } }
 
         #viewport canvas {
             display: block;
@@ -593,8 +615,13 @@
             <button onclick="document.getElementById('missing-alert').style.display='none'">Got it — I'll add
                 them</button>
         </div>
+        <div id="loading-popup">
+            <div class="load-icon">⏳</div>
+            <div class="load-text">Please wait, file is loading from the server...</div>
+            <div class="load-bar-wrap"><div class="load-bar"></div></div>
+        </div>
         <div id="ui-overlay">
-            <div id="status">READY — drop Frame first</div>
+            <div id="status">READY — click Frame first</div>
             <button id="lock-btn" onclick="toggleLock()">Lock Assembly</button>
         </div>
     </div>
@@ -645,66 +672,111 @@
         ];
 
         // Current progressive fix step (0 = waiting for frame+fork, up to 7 = chain→assembly)
+        // Current progressive fix step (0 = waiting for frame+fork, up to 7 = chain→assembly)
         let currentFixStep = 0;
         // Track the current progressive STL mesh on screen
         let progressiveMesh = null;
 
         // ─────────────────────────────────────────────
-        // ── Instructions System ──────────────────────
+        // ── Instructions System (8 Progressive Steps) ─
         const INSTR_DEFS = [
-            { slot: 'frame',           file: 'stl%20files/1.%20Frame.STL',                       color: 0xcc2200 },
-            { slot: 'fork',            file: 'stl%20files/2.%20Fork.STL',                        color: 0xc0c0c0 },
-            { slot: 'tireBush',        file: 'stl%20files/tire%20bushes.STL',                     color: 0xc0c0c0 },
-            { slot: 'handlebar',       file: 'stl%20files/3.%20Handlebar.STL',                    color: 0xc0c0c0 },
-            { slot: 'frontWheel',      file: 'stl%20files/4.%20Rim%20with%20Tire.STL',            color: 0x000000 },
-            { slot: 'frontTireLever',  file: 'stl%20files/11.%20back%20tire%20liver%20.STL',      color: 0xc0c0c0 },
-            { slot: 'seat',            file: 'stl%20files/7.%20Sadle.STL',                        color: 0x000000 },
-            { slot: 'pedalSprocket',   file: 'stl%20files/6.%20Sprocket.STL',                     color: 0xd4af37 },
-            { slot: 'pedalCrank',      file: 'stl%20files/8.%20Pedal.STL',                        color: 0xc0c0c0 },
-            { slot: 'backWheel',       file: 'stl%20files/5.%20Rim%20with%20Tire.STL',            color: 0x000000 },
-            { slot: 'backTireLever',   file: 'stl%20files/11.%20back%20tire%20liver%20.STL',      color: 0xc0c0c0 },
-            { slot: 'chain',           file: 'stl%20files/Chain.STL',                             color: 0xd4af37 },
-        ];
-        const INSTR_TEXT = [
-            '1. Import the frame onto the screen.',
-            '2. Drag the fork and place it into the fork hole located at the front of the frame.',
-            '3. Drag the handlebar bush and seal the gap between the handlebar and the frame.',
-            '4. Drag the handlebar and place it into the handlebar hole located at the front of the frame.',
-            '5. Drag the front wheel and place it at the front side of the frame.',
-            '6. Drag the front tire lever and place it into the front tire hole.',
-            '7. Drag the saddle/seat and place it into the saddle hole located at the center of the frame.',
-            '8. Drag the sprocket and place it into the sprocket hole located at the center of the frame.',
-            '9. Drag the pedals and attach them to the sprocket lever present on the sprocket.',
-            '10. Drag the back wheel and place it at the back side of the frame.',
-            '11. Drag the back tire lever and place it into the back tire hole.',
-            '12. Drag the chain and place it around the back tire and near the sprocket hole.',
+            {
+                title: "Step 1: Frame & Fork",
+                desc: "1. Click/Drop the Frame and Fork.\n2. Click the green 'Fix Positions' button in the left sidebar to secure them.",
+                required: ['frame', 'fork'],
+                files: [
+                    { slot: 'frame', file: 'stl%20files/1.%20Frame.STL', color: 0xcc2200 },
+                    { slot: 'fork', file: 'stl%20files/2.%20Fork.STL', color: 0xc0c0c0 }
+                ]
+            },
+            {
+                title: "Step 2: Handlebars",
+                desc: "1. Click/Drop the Handlebar Bush and Handlebar.\n2. Click 'Fix Positions' in the left sidebar to mount them.",
+                required: ['tireBush', 'handlebar'],
+                files: [
+                    { slot: 'tireBush', file: 'stl%20files/tire%20bushes.STL', color: 0xc0c0c0 },
+                    { slot: 'handlebar', file: 'stl%20files/3.%20Handlebar.STL', color: 0xc0c0c0 }
+                ]
+            },
+            {
+                title: "Step 3: Front Wheel",
+                desc: "1. Click/Drop the Front Wheel and Front Tire Lever.\n2. Click 'Fix Positions' to snap them to the fork.",
+                required: ['frontWheel', 'frontTireLever'],
+                files: [
+                    { slot: 'frontWheel', file: 'stl%20files/4.%20Rim%20with%20Tire.STL', color: 0x000000 },
+                    { slot: 'frontTireLever', file: 'stl%20files/11.%20back%20tire%20liver%20.STL', color: 0xc0c0c0 }
+                ]
+            },
+            {
+                title: "Step 4: Saddle",
+                desc: "1. Click/Drop the Saddle/Seat.\n2. Click 'Fix Positions' to lock it to the frame.",
+                required: ['seat'],
+                files: [
+                    { slot: 'seat', file: 'stl%20files/7.%20Sadle.STL', color: 0x000000 }
+                ]
+            },
+            {
+                title: "Step 5: Sprocket",
+                desc: "1. Click/Drop the Sprocket.\n2. Click 'Fix Positions' to attach it to the bottom bracket.",
+                required: ['pedalSprocket'],
+                files: [
+                    { slot: 'pedalSprocket', file: 'stl%20files/6.%20Sprocket.STL', color: 0xd4af37 }
+                ]
+            },
+            {
+                title: "Step 6: Pedals",
+                desc: "1. Click/Drop the Pedals.\n2. Click 'Fix Positions' to attach them to the sprocket cranks.",
+                required: ['pedalCrank'],
+                files: [
+                    { slot: 'pedalCrank', file: 'stl%20files/8.%20Pedal.STL', color: 0xc0c0c0 }
+                ]
+            },
+            {
+                title: "Step 7: Back Wheel",
+                desc: "1. Click/Drop the Back Wheel and Back Tire Lever.\n2. Click 'Fix Positions' to mount them to the frame's rear.",
+                required: ['backWheel', 'backTireLever'],
+                files: [
+                    { slot: 'backWheel', file: 'stl%20files/5.%20Rim%20with%20Tire.STL', color: 0x000000 },
+                    { slot: 'backTireLever', file: 'stl%20files/11.%20back%20tire%20liver%20.STL', color: 0xc0c0c0 }
+                ]
+            },
+            {
+                title: "Step 8: Chain",
+                desc: "1. Click/Drop the Chain.\n2. Click 'Fix Positions' to complete the full bicycle assembly!",
+                required: ['chain'],
+                files: [
+                    { slot: 'chain', file: 'stl%20files/Chain.STL', color: 0xd4af37 }
+                ]
+            }
         ];
 
-        // Helper: get all slots completed by prior fix steps + currently on screen
-        function getCompletedSlots() {
-            const completed = new Set();
-            // All slots from completed fix steps
+        // Helper: check if a part is allowed to be imported in the current step
+        function isAllowedToImport(slot) {
+            if (currentFixStep >= FIX_CONDITIONS.length) {
+                return { allowed: false, reason: '✅ Assembly is complete!' };
+            }
+            const cond = FIX_CONDITIONS[currentFixStep];
+            if (cond.required.includes(slot)) {
+                return { allowed: true };
+            }
+
+            // Check if already completed in a prior step
+            let completedParts = [];
             for (let i = 0; i < currentFixStep; i++) {
-                FIX_CONDITIONS[i].required.forEach(s => completed.add(s));
+                completedParts = completedParts.concat(FIX_CONDITIONS[i].required);
             }
-            // Plus any parts currently on screen
-            allParts.forEach(m => {
-                const s = m.userData.slot;
-                if (s !== 'progressive' && s !== 'assembly') completed.add(s);
-            });
-            // Check for assembly
-            if (allParts.some(m => m.userData.slot === 'assembly')) completed.add('assembly');
-            return completed;
-        }
+            if (completedParts.includes(slot)) {
+                return { allowed: false, reason: '✅ ' + (PART_DISPLAY_NAME[slot] || slot) + ' is already fixed and merged!' };
+            }
 
-        // Helper: get current step index (first incomplete step)
-        function getCurrentStep() {
-            const present = getCompletedSlots();
-            if (present.has('assembly')) return INSTR_DEFS.length;
-            for (let i = 0; i < INSTR_DEFS.length; i++) {
-                if (!present.has(INSTR_DEFS[i].slot)) return i;
+            // Otherwise, it is a future step
+            const presentSlots = new Set(allParts.map(m => m.userData.slot));
+            const allCurrentPresent = cond.required.every(s => presentSlots.has(s));
+            if (allCurrentPresent) {
+                return { allowed: false, reason: '⚠️ Click "Fix Positions" to lock these parts before proceeding!' };
+            } else {
+                return { allowed: false, reason: '⚠️ Complete and fix Step ' + (currentFixStep + 1) + ' first!' };
             }
-            return INSTR_DEFS.length;
         }
 
         let _instrDragTimer = null;
@@ -715,8 +787,20 @@
             INSTR_DEFS.forEach((def, i) => {
                 const div = document.createElement('div');
                 div.className = 'instr-item';
-                div.id = 'instr-' + def.slot;
-                div.textContent = INSTR_TEXT[i];
+                div.id = 'instr-step-' + i;
+
+                const title = document.createElement('div');
+                title.style.fontWeight = '700';
+                title.style.marginBottom = '4px';
+                title.textContent = def.title;
+
+                const desc = document.createElement('div');
+                desc.style.whiteSpace = 'pre-line';
+                desc.textContent = def.desc;
+
+                div.appendChild(title);
+                div.appendChild(desc);
+
                 div.addEventListener('click', () => onInstrClick(def, i));
                 list.appendChild(div);
             });
@@ -724,40 +808,27 @@
         }
 
         function updateInstructions() {
-            const present = getCompletedSlots();
+            const isFinalAssembly = allParts.some(m => m.userData.slot === 'assembly') && currentFixStep >= FIX_CONDITIONS.length;
 
-            // When assembly is loaded, all steps are complete
-            if (present.has('assembly')) {
-                INSTR_DEFS.forEach(def => {
-                    const el = document.getElementById('instr-' + def.slot);
-                    if (el) el.className = 'instr-item done';
-                });
-                const pt = document.getElementById('instr-prog-text');
-                const pf = document.getElementById('instr-bar-fill');
-                if (pt) pt.textContent = `All ${INSTR_DEFS.length} / ${INSTR_DEFS.length} complete ✓`;
-                if (pf) pf.style.width = '100%';
-                return;
-            }
-
-            let firstActive = -1, done = 0;
             INSTR_DEFS.forEach((def, i) => {
-                const el = document.getElementById('instr-' + def.slot);
+                const el = document.getElementById('instr-step-' + i);
                 if (!el) return;
-                const isDone = present.has(def.slot);
-                if (isDone) {
-                    el.className = 'instr-item done'; done++;
-                } else if (firstActive === -1) {
-                    firstActive = i;
+
+                if (i < currentFixStep || isFinalAssembly) {
+                    el.className = 'instr-item done';
+                } else if (i === currentFixStep) {
                     el.className = 'instr-item active';
                     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 } else {
                     el.className = 'instr-item';
                 }
             });
+
+            const done = isFinalAssembly ? INSTR_DEFS.length : currentFixStep;
             const pct = Math.round(done / INSTR_DEFS.length * 100);
             const pt = document.getElementById('instr-prog-text');
             const pf = document.getElementById('instr-bar-fill');
-            if (pt) pt.textContent = `Step ${done} / ${INSTR_DEFS.length} complete`;
+            if (pt) pt.textContent = isFinalAssembly ? `All ${INSTR_DEFS.length} / ${INSTR_DEFS.length} complete ✓` : `Step ${done} / ${INSTR_DEFS.length} complete`;
             if (pf) pf.style.width = pct + '%';
 
             // Show Fix button when all required parts for current step are present
@@ -765,7 +836,8 @@
             if (fixBtn) {
                 if (currentFixStep < FIX_CONDITIONS.length) {
                     const cond = FIX_CONDITIONS[currentFixStep];
-                    const allPresent = cond.required.every(s => present.has(s));
+                    const presentSlots = new Set(allParts.map(m => m.userData.slot));
+                    const allPresent = cond.required.every(s => presentSlots.has(s));
                     fixBtn.style.display = allPresent ? 'block' : 'none';
                 } else {
                     fixBtn.style.display = 'none';
@@ -773,40 +845,32 @@
             }
         }
 
-        function instrHighlightDrag(slot) {
-            document.querySelectorAll('.instr-item.drag-hl').forEach(el => el.classList.remove('drag-hl'));
-            const el = document.getElementById('instr-' + slot);
-            if (el && !el.classList.contains('done')) {
-                el.classList.add('drag-hl');
-                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                clearTimeout(_instrDragTimer);
-                _instrDragTimer = setTimeout(() => instrClearDrag(), 5000);
-            }
-        }
-
-        function instrClearDrag() {
-            clearTimeout(_instrDragTimer);
-            document.querySelectorAll('.instr-item.drag-hl').forEach(el => el.classList.remove('drag-hl'));
-            updateInstructions();
-        }
-
         function onInstrClick(def, idx) {
             if (isAssembled()) { showAssemblyLockedToast(); return; }
-            // ── Strict step-by-step: only allow current step ──
-            const curStep = getCurrentStep();
-            if (idx !== curStep) {
-                if (idx < curStep) { setStatus('✅ Step ' + (idx+1) + ' already done'); }
-                else { setStatus('⚠️ Complete step ' + (curStep+1) + ' first!'); }
+            if (idx !== currentFixStep) {
+                if (idx < currentFixStep) {
+                    setStatus('✅ Step ' + (idx + 1) + ' is already completed and fixed!');
+                } else {
+                    setStatus('⚠️ Please complete Step ' + (currentFixStep + 1) + ' first!');
+                }
                 return;
             }
-            if (def.slot !== 'frame' && !frameBox) {
-                setStatus('⚠️ Place the Frame first!');
-                return;
+
+            // Load any missing parts for this step
+            let loadedAny = false;
+            def.files.forEach(f => {
+                const alreadyAdded = allParts.some(m => m.userData.slot === f.slot);
+                if (!alreadyAdded) {
+                    const fname = f.file.split('/').pop().toLowerCase();
+                    const url = uploadedFiles[fname] || (BASE_URL + f.file);
+                    loadPart(url, f.slot, f.color);
+                    loadedAny = true;
+                }
+            });
+
+            if (!loadedAny) {
+                setStatus('💡 All parts for this step are loaded. Click the green "Fix Positions" button in the left sidebar!');
             }
-            const fname = def.file.split('/').pop().toLowerCase();
-            const url = uploadedFiles[fname] || (BASE_URL + def.file);
-            loadPart(url, def.slot, def.color);
-            instrHighlightDrag(def.slot);
         }
 
         // ─────────────────────────────────────────────
@@ -869,12 +933,12 @@
 
         function init() {
             scene = new THREE.Scene();
-            // Premium black background
-            scene.background = new THREE.Color(0x000000);
-            scene.fog = new THREE.FogExp2(0x000000, 0.0005);
+            // White background
+            scene.background = new THREE.Color(0xFFFFFF);
+            scene.fog = new THREE.FogExp2(0xFFFFFF, 0.0004);
 
-            // Subtle grid on black background
-            const grid = new THREE.GridHelper(1600, 40, 0x1a1a2e, 0x0a0a15);
+            // Light grid on white background
+            const grid = new THREE.GridHelper(1600, 40, 0xD0D0D0, 0xEEEEEE);
             grid.position.y = -220;
             scene.add(grid);
 
@@ -955,11 +1019,9 @@
             if (isAssembled()) { showAssemblyLockedToast(); return; }
 
             // ── Strict step-by-step enforcement ──
-            const curStep = getCurrentStep();
-            const stepIdx = INSTR_DEFS.findIndex(d => d.slot === slot);
-            if (stepIdx >= 0 && stepIdx !== curStep) {
-                if (stepIdx < curStep) { showDuplicateToast(PART_DISPLAY_NAME[slot] || slot); }
-                else { setStatus('⚠️ Complete step ' + (curStep+1) + ' first!'); }
+            const check = isAllowedToImport(slot);
+            if (!check.allowed) {
+                setStatus(check.reason);
                 return;
             }
 
@@ -973,7 +1035,6 @@
 
             const url = uploadedFiles[file.toLowerCase()] || (BASE_URL + file);
             loadPart(url, slot, color);
-
         }
 
         // ── Fix Positions: load progressive pre-assembled STL ──
@@ -996,6 +1057,8 @@
 
             // ── Remove ALL current parts from scene ──
             setStatus('⚡ Loading assembly step ' + (currentFixStep + 1) + '…');
+            document.getElementById('loading-popup').style.display = 'block';
+
             [...allParts].forEach(m => scene.remove(m));
             allParts.length = 0;
             if (progressiveMesh) { scene.remove(progressiveMesh); progressiveMesh = null; }
@@ -1009,6 +1072,8 @@
             const isFinal = cond.final === true;
 
             new THREE.STLLoader().load(stlUrl, function (geo) {
+                document.getElementById('loading-popup').style.display = 'none';
+
                 geo.center();
                 geo.computeVertexNormals();
                 geo.computeBoundingBox();
@@ -1018,12 +1083,12 @@
                 const longest = Math.max(bbSize.x, bbSize.y, bbSize.z);
                 const sc = (FRAME_TARGET * 2) / longest;
 
-                // Premium metallic material — silver/white on dark background
+                // Premium black metallic material
                 const mat = new THREE.MeshStandardMaterial({
-                    color: 0xE0E0E0,
-                    metalness: 0.65,
-                    roughness: 0.22,
-                    envMapIntensity: 1.0,
+                    color: 0x1A1A1A,
+                    metalness: 0.75,
+                    roughness: 0.18,
+                    envMapIntensity: 1.2,
                 });
 
                 const mesh = new THREE.Mesh(geo, mat);
@@ -1075,6 +1140,7 @@
 
             }, undefined, function (err) {
                 console.error(err);
+                document.getElementById('loading-popup').style.display = 'none';
                 setStatus('⚠️ Could not load assembly STL — check connection');
             });
         }
@@ -1126,16 +1192,14 @@
             if (!raw) return;
             const { file, slot, color } = JSON.parse(raw);
 
-            // ── Strict step-by-step enforcement ──────────────────────────────
-            const curStep = getCurrentStep();
-            const stepIdx = INSTR_DEFS.findIndex(d => d.slot === slot);
-            if (stepIdx >= 0 && stepIdx !== curStep) {
-                if (stepIdx < curStep) { showDuplicateToast(PART_DISPLAY_NAME[slot] || slot); }
-                else { setStatus('⚠️ Complete step ' + (curStep+1) + ' first! (' + INSTR_TEXT[curStep].split('. ')[1] + ')'); }
+            // ── Strict step-by-step enforcement ──
+            const check = isAllowedToImport(slot);
+            if (!check.allowed) {
+                setStatus(check.reason);
                 return;
             }
 
-            // ── Duplicate guard ──────────────────────────────────────────────
+            // ── Duplicate guard ──
             if (SINGLE_SLOTS.has(slot)) {
                 const alreadyAdded = allParts.some(m => m.userData.slot === slot);
                 if (alreadyAdded) {
@@ -1151,7 +1215,9 @@
         // ── Load & auto-scale STL ────────────────────
         function loadPart(url, slot, color) {
             setStatus('Loading…');
+            document.getElementById('loading-popup').style.display = 'block';
             new THREE.STLLoader().load(url, function (geo) {
+                document.getElementById('loading-popup').style.display = 'none';
                 geo.center();
                 geo.computeVertexNormals();
                 geo.computeBoundingBox();
@@ -1160,8 +1226,8 @@
                 geo.boundingBox.getSize(size);
                 const longest = Math.max(size.x, size.y, size.z);
 
-                // Premium matte metallic material — consistent across all parts
-                const mat = new THREE.MeshStandardMaterial({ color: 0xE0E0E0, metalness: 0.65, roughness: 0.22, envMapIntensity: 1.0 });
+                // Premium black metallic material — consistent across all parts
+                const mat = new THREE.MeshStandardMaterial({ color: 0x1A1A1A, metalness: 0.75, roughness: 0.18, envMapIntensity: 1.2 });
                 const mesh = new THREE.Mesh(geo, mat);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
@@ -1248,6 +1314,7 @@
                 updateInstructions();
             }, undefined, err => {
                 console.error(err);
+                document.getElementById('loading-popup').style.display = 'none';
                 setStatus('⚠️ Could not load file — check your connection');
             });
         }
@@ -1441,6 +1508,7 @@
 
             // ── Clear ALL individual parts from scene ──────────────────────
             setStatus('⚡ Loading Assembly…');
+            document.getElementById('loading-popup').style.display = 'block';
             [...allParts].forEach(m => scene.remove(m));
             allParts.length = 0;
             frameBox = null; frameScale = 1;
@@ -1452,6 +1520,7 @@
             const assemblyUrl = uploadedFiles['assembly.stl'] || ASSEMBLY_URL;
 
             new THREE.STLLoader().load(assemblyUrl, function (geo) {
+                document.getElementById('loading-popup').style.display = 'none';
 
                 geo.center();
                 geo.computeVertexNormals();
@@ -1510,9 +1579,9 @@
                             'size:', bbSize.z.toFixed(1), 'forkMinZ:', forkMinZ.toFixed(1));
 
                 // ── Colours ───────────────────────────────────────────────
-                const cRed    = new THREE.Color(0xDD0000);   // 🔴 Frame
-                const cBlack  = new THREE.Color(0x111111);   // ⚫ Tires + Saddle
-                const cSilver = new THREE.Color(0xC8C8C8);   // 🩶 Fork + Handlebar
+                const cRed    = new THREE.Color(0x111111);   // ⚫ Frame (Metallic Black)
+                const cBlack  = new THREE.Color(0x050505);   // ⚫ Tires + Saddle (Rich Black)
+                const cSilver = new THREE.Color(0x222222);   // 🩶 Fork + Handlebar (Sleek Gunmetal)
 
                 // ── AUTO-SCAN: log bounding boxes for all 3 Z zones ────────
                 const scan = (label, fn) => {
@@ -1699,10 +1768,11 @@
 
                 // ── NO auto-rotation ─────────────────────────────────────────
                 assemblyRotating = false;
-                setStatus('✅ Assembly — Frame 🔴 Red  |  Tires + Saddle ⚫ Black  |  Fork + Handlebar 🩶 Silver');
+                setStatus('✅ Assembly complete — Premium Sleek Black Metallic!');
 
             }, undefined, function (err) {
                 console.error(err);
+                document.getElementById('loading-popup').style.display = 'none';
                 setStatus('⚠️ Assembly.stl not found — try uploading it manually');
             });
         }
