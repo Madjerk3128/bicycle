@@ -139,7 +139,7 @@
         #viewport {
             flex: 1;
             position: relative;
-            background: #0f1923;
+            background: #000000;
         }
 
         #viewport canvas {
@@ -869,12 +869,12 @@
 
         function init() {
             scene = new THREE.Scene();
-            // Premium gradient-like dark background
-            scene.background = new THREE.Color(0x0f1923);
-            scene.fog = new THREE.FogExp2(0x0f1923, 0.0008);
+            // Premium black background
+            scene.background = new THREE.Color(0x000000);
+            scene.fog = new THREE.FogExp2(0x000000, 0.0005);
 
-            // Enhanced grid with dark theme
-            const grid = new THREE.GridHelper(1600, 40, 0x1e3a5f, 0x0d2137);
+            // Subtle grid on black background
+            const grid = new THREE.GridHelper(1600, 40, 0x1a1a2e, 0x0a0a15);
             grid.position.y = -220;
             scene.add(grid);
 
@@ -1160,7 +1160,8 @@
                 geo.boundingBox.getSize(size);
                 const longest = Math.max(size.x, size.y, size.z);
 
-                const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.45, roughness: 0.5, envMapIntensity: 0.8 });
+                // Premium matte metallic material — consistent across all parts
+                const mat = new THREE.MeshStandardMaterial({ color: 0xE0E0E0, metalness: 0.65, roughness: 0.22, envMapIntensity: 1.0 });
                 const mesh = new THREE.Mesh(geo, mat);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
