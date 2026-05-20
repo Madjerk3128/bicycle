@@ -1,1 +1,2 @@
 stl[[:space:]]files/Assembly.STL filter=lfs diff=lfs merge=lfs -text
+stl[[:space:]]files/new[[:space:]]stl/*.STL filter=lfs diff=lfs merge=lfs -text

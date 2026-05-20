@@ -619,6 +619,36 @@
         // Assembly.STL is LFS-tracked, use GitHub raw media endpoint
         const ASSEMBLY_URL = 'https://media.githubusercontent.com/media/Madjerk3128/bicycle/main/stl%20files/Assembly.STL';
 
+        // ── Progressive Assembly STL URLs (LFS-tracked) ──────────
+        const NEW_STL_BASE = 'https://media.githubusercontent.com/media/Madjerk3128/bicycle/main/stl%20files/new%20stl/';
+        const PROGRESSIVE_STLS = [
+            NEW_STL_BASE + '1.STL',   // Step 0: Frame + Fork
+            NEW_STL_BASE + '2.STL',   // Step 1: + Handlebar Bush + Handlebar
+            NEW_STL_BASE + '3.STL',   // Step 2: + Front Wheel + Front Tire Lever
+            NEW_STL_BASE + '4.STL',   // Step 3: + Saddle
+            NEW_STL_BASE + '5.STL',   // Step 4: + Sprocket
+            NEW_STL_BASE + '6.STL',   // Step 5: + Pedals
+            NEW_STL_BASE + '7.STL',   // Step 6: + Back Wheel + Back Tire Lever
+            ASSEMBLY_URL,              // Step 7: Full Assembly (final)
+        ];
+
+        // Fix conditions: which parts must be on screen before Fix works
+        const FIX_CONDITIONS = [
+            { required: ['frame', 'fork'],                      label: 'Frame + Fork' },
+            { required: ['tireBush', 'handlebar'],              label: 'Handlebar Bush + Handlebar' },
+            { required: ['frontWheel', 'frontTireLever'],       label: 'Front Wheel + Front Tire Lever' },
+            { required: ['seat'],                                label: 'Saddle' },
+            { required: ['pedalSprocket'],                       label: 'Sprocket' },
+            { required: ['pedalCrank'],                          label: 'Pedals' },
+            { required: ['backWheel', 'backTireLever'],         label: 'Back Wheel + Back Tire Lever' },
+            { required: ['chain'],                               label: 'Chain', final: true },
+        ];
+
+        // Current progressive fix step (0 = waiting for frame+fork, up to 7 = chain→assembly)
+        let currentFixStep = 0;
+        // Track the current progressive STL mesh on screen
+        let progressiveMesh = null;
+
         // ─────────────────────────────────────────────
         // ── Instructions System ──────────────────────
         const INSTR_DEFS = [
@@ -650,9 +680,26 @@
             '12. Drag the chain and place it around the back tire and near the sprocket hole.',
         ];
 
+        // Helper: get all slots completed by prior fix steps + currently on screen
+        function getCompletedSlots() {
+            const completed = new Set();
+            // All slots from completed fix steps
+            for (let i = 0; i < currentFixStep; i++) {
+                FIX_CONDITIONS[i].required.forEach(s => completed.add(s));
+            }
+            // Plus any parts currently on screen
+            allParts.forEach(m => {
+                const s = m.userData.slot;
+                if (s !== 'progressive' && s !== 'assembly') completed.add(s);
+            });
+            // Check for assembly
+            if (allParts.some(m => m.userData.slot === 'assembly')) completed.add('assembly');
+            return completed;
+        }
+
         // Helper: get current step index (first incomplete step)
         function getCurrentStep() {
-            const present = new Set(allParts.map(m => m.userData.slot));
+            const present = getCompletedSlots();
             if (present.has('assembly')) return INSTR_DEFS.length;
             for (let i = 0; i < INSTR_DEFS.length; i++) {
                 if (!present.has(INSTR_DEFS[i].slot)) return i;
@@ -677,9 +724,9 @@
         }
 
         function updateInstructions() {
-            const present = new Set(allParts.map(m => m.userData.slot));
+            const present = getCompletedSlots();
 
-            // When AutoFix assembly is loaded (slot='assembly'), all steps are complete
+            // When assembly is loaded, all steps are complete
             if (present.has('assembly')) {
                 INSTR_DEFS.forEach(def => {
                     const el = document.getElementById('instr-' + def.slot);
@@ -696,8 +743,7 @@
             INSTR_DEFS.forEach((def, i) => {
                 const el = document.getElementById('instr-' + def.slot);
                 if (!el) return;
-                const isDone = present.has(def.slot) ||
-                    (def.slot === 'backTireBolt' && (present.has('backTireBolt') || present.has('tireBolt')));
+                const isDone = present.has(def.slot);
                 if (isDone) {
                     el.className = 'instr-item done'; done++;
                 } else if (firstActive === -1) {
@@ -714,9 +760,17 @@
             if (pt) pt.textContent = `Step ${done} / ${INSTR_DEFS.length} complete`;
             if (pf) pf.style.width = pct + '%';
 
-            // Show Fix button once step 2+ is done (frame + fork placed)
+            // Show Fix button when all required parts for current step are present
             const fixBtn = document.getElementById('fix-btn');
-            if (fixBtn) fixBtn.style.display = done >= 2 ? 'block' : 'none';
+            if (fixBtn) {
+                if (currentFixStep < FIX_CONDITIONS.length) {
+                    const cond = FIX_CONDITIONS[currentFixStep];
+                    const allPresent = cond.required.every(s => present.has(s));
+                    fixBtn.style.display = allPresent ? 'block' : 'none';
+                } else {
+                    fixBtn.style.display = 'none';
+                }
+            }
         }
 
         function instrHighlightDrag(slot) {
@@ -922,43 +976,107 @@
 
         }
 
-        // ── Fix Positions: snap all parts to correct locations ──
+        // ── Fix Positions: load progressive pre-assembled STL ──
         function fixPositions() {
-            if (!frameBox) { setStatus('⚠️ Place the Frame first!'); return; }
+            if (currentFixStep >= FIX_CONDITIONS.length) {
+                setStatus('✅ Assembly is complete!');
+                return;
+            }
 
-            const fbSize = new THREE.Vector3();
-            frameBox.getSize(fbSize);
-            const refLen = Math.max(fbSize.x, fbSize.y, fbSize.z);
+            const cond = FIX_CONDITIONS[currentFixStep];
+            const presentSlots = new Set(allParts.filter(m => m.userData.slot !== 'progressive').map(m => m.userData.slot));
 
-            allParts.forEach(mesh => {
-                const slot = mesh.userData.slot;
-                if (slot === 'frame' || slot === 'assembly') return;
-                const def = SLOT_DEF[slot];
-                if (!def) return;
+            // Check if all required parts for this step are present
+            const missing = cond.required.filter(s => !presentSlots.has(s));
+            if (missing.length > 0) {
+                const missingNames = missing.map(s => PART_DISPLAY_NAME[s] || s).join(' + ');
+                setStatus('⚠️ Add ' + missingNames + ' first!');
+                return;
+            }
 
-                // Rescale to correct target size
-                const geo = mesh.geometry;
+            // ── Remove ALL current parts from scene ──
+            setStatus('⚡ Loading assembly step ' + (currentFixStep + 1) + '…');
+            [...allParts].forEach(m => scene.remove(m));
+            allParts.length = 0;
+            if (progressiveMesh) { scene.remove(progressiveMesh); progressiveMesh = null; }
+            if (assemblyGroup) { scene.remove(assemblyGroup); assemblyGroup = null; }
+            assemblyRotating = false;
+            // Reset frameBox — progressive STL becomes the new reference
+            frameBox = null; frameScale = 1;
+
+            // ── Load the progressive STL ──
+            const stlUrl = PROGRESSIVE_STLS[currentFixStep];
+            const isFinal = cond.final === true;
+
+            new THREE.STLLoader().load(stlUrl, function (geo) {
+                geo.center();
+                geo.computeVertexNormals();
                 geo.computeBoundingBox();
-                const geoSize = new THREE.Vector3();
-                geo.boundingBox.getSize(geoSize);
-                const longest = Math.max(geoSize.x, geoSize.y, geoSize.z);
-                const targetSize = def.targetFrac * refLen;
-                mesh.scale.setScalar(targetSize / longest);
 
-                // Snap position
-                const snapX = frameBox.min.x + def.fx * fbSize.x;
-                const snapY = frameBox.min.y + def.fy * fbSize.y;
-                const snapZ = frameBox.min.z + def.fz * fbSize.z;
-                mesh.position.set(snapX, snapY, snapZ);
+                const bbSize = new THREE.Vector3();
+                geo.boundingBox.getSize(bbSize);
+                const longest = Math.max(bbSize.x, bbSize.y, bbSize.z);
+                const sc = (FRAME_TARGET * 2) / longest;
 
-                // Reapply orientation
-                applyOrientation(mesh, geo, def, slot);
+                // Premium metallic material — silver/white on dark background
+                const mat = new THREE.MeshStandardMaterial({
+                    color: 0xE0E0E0,
+                    metalness: 0.65,
+                    roughness: 0.22,
+                    envMapIntensity: 1.0,
+                });
 
-                console.log('[Fix]', slot, 'pos:', snapX.toFixed(1), snapY.toFixed(1), snapZ.toFixed(1), 'scale:', mesh.scale.x.toFixed(4));
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.scale.setScalar(sc);
+                mesh.rotation.set(0, 0, -Math.PI / 14);  // slight tilt like frame
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.userData.slot = isFinal ? 'assembly' : 'progressive';
+
+                // Wrap in group for positioning
+                assemblyGroup = new THREE.Group();
+                scene.add(assemblyGroup);
+                assemblyGroup.add(mesh);
+                allParts.push(mesh);
+                progressiveMesh = mesh;
+
+                // Sit just above the grid (grid y = -220)
+                mesh.updateMatrixWorld(true);
+                assemblyGroup.updateMatrixWorld(true);
+                const wb = new THREE.Box3().setFromObject(assemblyGroup);
+                assemblyGroup.position.y = -wb.min.y - 220 + 10;
+                assemblyGroup.updateMatrixWorld(true);
+                frameBox = new THREE.Box3().setFromObject(assemblyGroup);
+
+                // Advance step
+                currentFixStep++;
+
+                // Hide frame-hint
+                const fh = document.getElementById('frame-hint');
+                if (fh) fh.style.display = 'none';
+
+                if (isFinal) {
+                    // Final step — hide Fix button, hide AutoFix button
+                    const fixBtn = document.getElementById('fix-btn');
+                    if (fixBtn) fixBtn.style.display = 'none';
+                    const autoBtn = document.getElementById('autofix-btn');
+                    if (autoBtn) autoBtn.style.display = 'none';
+                    setStatus('✅ Assembly complete! 🚲');
+                } else {
+                    // Hide Fix button until next parts are added
+                    const fixBtn = document.getElementById('fix-btn');
+                    if (fixBtn) fixBtn.style.display = 'none';
+                    const nextCond = FIX_CONDITIONS[currentFixStep];
+                    setStatus('✅ Step ' + currentFixStep + ' done — now add: ' + nextCond.label);
+                }
+
+                rebuildDrag();
+                updateInstructions();
+
+            }, undefined, function (err) {
+                console.error(err);
+                setStatus('⚠️ Could not load assembly STL — check connection');
             });
-
-            rebuildDrag();
-            setStatus('✅ Parts fixed into correct positions!');
         }
 
         // ── Duplicate-part toast helper ───────────────
@@ -1091,7 +1209,9 @@
                         scene.add(meshL); allParts.push(meshL);
 
                         setStatus('Pedal pair added ✓ — click Fix to position');
-                        rebuildDrag(); return;
+                        rebuildDrag(); 
+                        updateInstructions();
+                        return;
                     }
 
                     // ── Single-spawn parts (front/back tire levers, bush, etc) ──
@@ -1100,7 +1220,9 @@
                         mesh.userData.slot = slot;
                         scene.add(mesh); allParts.push(mesh);
                         setStatus('Tire lever added ✓ — click Fix to position');
-                        rebuildDrag(); return;
+                        rebuildDrag(); 
+                        updateInstructions();
+                        return;
                     }
 
                     if (slot === 'tireBush') {
@@ -1108,7 +1230,9 @@
                         mesh.userData.slot = slot;
                         scene.add(mesh); allParts.push(mesh);
                         setStatus('Handlebar bush added ✓ — click Fix to position');
-                        rebuildDrag(); return;
+                        rebuildDrag(); 
+                        updateInstructions();
+                        return;
                     }
                     // ─────────────────────────────────────────────────────────
 
@@ -1120,6 +1244,7 @@
                 scene.add(mesh);
                 allParts.push(mesh);
                 rebuildDrag();
+                updateInstructions();
             }, undefined, err => {
                 console.error(err);
                 setStatus('⚠️ Could not load file — check your connection');
