@@ -59,16 +59,23 @@
         }
 
         #sidebar h2 {
-            font-size: 0.68rem;
-            letter-spacing: 2px;
-            color: #4a8ecb;
+            font-size: 1rem;
+            letter-spacing: 2.5px;
+            color: #7ab8f5;
             text-transform: uppercase;
-            margin-bottom: 2px;
+            margin-bottom: 6px;
             flex-shrink: 0;
+            font-weight: 800;
+            text-shadow: 0 0 12px rgba(122,184,245,0.7), 0 0 24px rgba(74,142,203,0.4);
+            background: linear-gradient(90deg, #4a8ecb, #7ab8f5, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         #upload-btn {
             flex-shrink: 0;
+            display: none !important;
         }
 
         #upload-btn {
@@ -209,30 +216,7 @@
         }
 
         #autofix-btn {
-            flex-shrink: 0;
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 12px;
-            font-size: 0.78rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            letter-spacing: 0.5px;
-            transition: opacity 0.2s, transform 0.1s;
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
-        }
-
-        #autofix-btn:hover {
-            opacity: 0.88;
-            transform: translateY(-1px);
-        }
-
-        #autofix-btn:active {
-            transform: translateY(0);
+            display: none !important;
         }
 
         /* ── Zoom buttons ──────────────────────────── */
@@ -427,12 +411,18 @@
             z-index: 10;
         }
         #instructions h2 {
-            font-size: 0.68rem;
-            letter-spacing: 2px;
+            font-size: 1rem;
+            letter-spacing: 2.5px;
             color: #a78bfa;
             text-transform: uppercase;
-            margin-bottom: 2px;
+            margin-bottom: 6px;
             flex-shrink: 0;
+            font-weight: 800;
+            text-shadow: 0 0 12px rgba(167,139,250,0.7), 0 0 24px rgba(124,58,237,0.4);
+            background: linear-gradient(90deg, #7c3aed, #a78bfa, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         #instr-list {
             flex: 1;
@@ -450,17 +440,18 @@
             background: rgba(30,58,95,0.25);
             border: 1.5px solid #1e3a5f44;
             border-radius: 8px;
-            padding: 8px 10px;
-            font-size: 0.67rem;
+            padding: 9px 12px;
+            font-size: 0.75rem;
             font-weight: 500;
-            color: #3a5a7a;
-            line-height: 1.45;
-            cursor: pointer;
+            color: #7ab8f5;
+            line-height: 1.55;
+            cursor: default;
             transition: all 0.2s;
             position: relative;
             user-select: none;
+            pointer-events: none;
         }
-        .instr-item:hover { color: #7ab8f5; border-color: #2563eb55; background: rgba(37,99,235,0.1); }
+        .instr-item:hover { color: #7ab8f5; border-color: #1e3a5f44; background: rgba(30,58,95,0.25); }
         .instr-item.active {
             background: rgba(37,99,235,0.18);
             border: 1.5px solid #3b82f6;
@@ -582,12 +573,12 @@
             <div class="part-item" onclick="clickPart('stl%20files/tire%20bushes.STL','tireBush',0xc0c0c0)">🔩 Handlebar Bushes</div>
             <div class="part-item" onclick="clickPart('stl%20files/3.%20Handlebar.STL','handlebar',0xc0c0c0)">🎛️ Handlebar</div>
             <div class="part-item" onclick="clickPart('stl%20files/4.%20Rim%20with%20Tire.STL','frontWheel',0x000000)">⭕ Front Wheel</div>
-            <div class="part-item" onclick="clickPart('stl%20files/11.%20back%20tire%20liver%20.STL','frontTireLever',0xc0c0c0)">🔧 Front Tire Lever</div>
+            <div class="part-item" onclick="clickPart('stl%20files/11.%20back%20tire%20liver%20.STL','frontTireLever',0xc0c0c0)">🔩 Front Tire Axle</div>
             <div class="part-item" onclick="clickPart('stl%20files/7.%20Sadle.STL','seat',0x000000)">🪑 Saddle</div>
             <div class="part-item" onclick="clickPart('stl%20files/6.%20Sprocket.STL','pedalSprocket',0xd4af37)">⚙️ Sprocket</div>
             <div class="part-item" onclick="clickPart('stl%20files/8.%20Pedal.STL','pedalCrank',0xc0c0c0)">🦵 Pedal ×2</div>
             <div class="part-item" onclick="clickPart('stl%20files/5.%20Rim%20with%20Tire.STL','backWheel',0x000000)">⭕ Back Wheel</div>
-            <div class="part-item" onclick="clickPart('stl%20files/11.%20back%20tire%20liver%20.STL','backTireLever',0xc0c0c0)">🔧 Back Tire Lever</div>
+            <div class="part-item" onclick="clickPart('stl%20files/11.%20back%20tire%20liver%20.STL','backTireLever',0xc0c0c0)">🔩 Back Tire Axle</div>
             <div class="part-item" onclick="clickPart('stl%20files/Chain.STL','chain',0xd4af37)">⛓️ Chain</div>
         </div>
         <!-- ↑ scroll inside this list if items overflow -->
@@ -617,7 +608,7 @@
         </div>
         <div id="loading-popup">
             <div class="load-icon">⏳</div>
-            <div class="load-text">Please wait, file is loading from the server...</div>
+            <div class="load-text">Please wait, fixing the assembly...</div>
             <div class="load-bar-wrap"><div class="load-bar"></div></div>
         </div>
         <div id="ui-overlay">
@@ -651,11 +642,11 @@
         const PROGRESSIVE_STLS = [
             NEW_STL_BASE + '1.STL',   // Step 0: Frame + Fork
             NEW_STL_BASE + '2.STL',   // Step 1: + Handlebar Bush + Handlebar
-            NEW_STL_BASE + '3.STL',   // Step 2: + Front Wheel + Front Tire Lever
+            NEW_STL_BASE + '3.STL',   // Step 2: + Front Wheel + Front Tire Axle
             NEW_STL_BASE + '4.STL',   // Step 3: + Saddle
             NEW_STL_BASE + '5.STL',   // Step 4: + Sprocket
             NEW_STL_BASE + '6.STL',   // Step 5: + Pedals
-            NEW_STL_BASE + '7.STL',   // Step 6: + Back Wheel + Back Tire Lever
+            NEW_STL_BASE + '7.STL',   // Step 6: + Back Wheel + Back Tire Axle
             ASSEMBLY_URL,              // Step 7: Full Assembly (final)
         ];
 
@@ -663,11 +654,11 @@
         const FIX_CONDITIONS = [
             { required: ['frame', 'fork'],                      label: 'Frame + Fork' },
             { required: ['tireBush', 'handlebar'],              label: 'Handlebar Bush + Handlebar' },
-            { required: ['frontWheel', 'frontTireLever'],       label: 'Front Wheel + Front Tire Lever' },
+            { required: ['frontWheel', 'frontTireLever'],       label: 'Front Wheel + Front Tire Axle' },
             { required: ['seat'],                                label: 'Saddle' },
             { required: ['pedalSprocket'],                       label: 'Sprocket' },
             { required: ['pedalCrank'],                          label: 'Pedals' },
-            { required: ['backWheel', 'backTireLever'],         label: 'Back Wheel + Back Tire Lever' },
+            { required: ['backWheel', 'backTireLever'],         label: 'Back Wheel + Back Tire Axle' },
             { required: ['chain'],                               label: 'Chain', final: true },
         ];
 
@@ -678,77 +669,172 @@
         let progressiveMesh = null;
 
         // ─────────────────────────────────────────────
-        // ── Instructions System (8 Progressive Steps) ─
+        // ── Instructions System (20 Individual Steps) ─
+        // fixGroup maps each visual step to its FIX_CONDITIONS index (0-7).
+        // The last step in each group is the one that triggers Fix.
         const INSTR_DEFS = [
+            // ── Group 0: Frame & Fork ──
             {
-                title: "Step 1: Frame & Fork",
-                desc: "1. Click/Drop the Frame and Fork.\n2. Click the green 'Fix Positions' button in the left sidebar to secure them.",
+                title: "Step 1",
+                desc: "Click the Frame to place it on the screen first.",
+                fixGroup: 0, fixTrigger: false,
                 required: ['frame', 'fork'],
-                files: [
-                    { slot: 'frame', file: 'stl%20files/1.%20Frame.STL', color: 0xcc2200 },
-                    { slot: 'fork', file: 'stl%20files/2.%20Fork.STL', color: 0xc0c0c0 }
-                ]
+                files: [{ slot: 'frame', file: 'stl%20files/1.%20Frame.STL', color: 0xcc2200 }]
             },
             {
-                title: "Step 2: Handlebars",
-                desc: "1. Click/Drop the Handlebar Bush and Handlebar.\n2. Click 'Fix Positions' in the left sidebar to mount them.",
+                title: "Step 2",
+                desc: "Then click the Fork to attach it to the frame.",
+                fixGroup: 0, fixTrigger: false,
+                required: ['frame', 'fork'],
+                files: [{ slot: 'fork', file: 'stl%20files/2.%20Fork.STL', color: 0xc0c0c0 }]
+            },
+            {
+                title: "Step 3",
+                desc: "Click the Fix button in the Components tab to secure them.",
+                fixGroup: 0, fixTrigger: true,
+                required: ['frame', 'fork'],
+                files: []
+            },
+            // ── Group 1: Handlebar Assembly ──
+            {
+                title: "Step 4",
+                desc: "Click the Handlebar Bush first.",
+                fixGroup: 1, fixTrigger: false,
                 required: ['tireBush', 'handlebar'],
-                files: [
-                    { slot: 'tireBush', file: 'stl%20files/tire%20bushes.STL', color: 0xc0c0c0 },
-                    { slot: 'handlebar', file: 'stl%20files/3.%20Handlebar.STL', color: 0xc0c0c0 }
-                ]
+                files: [{ slot: 'tireBush', file: 'stl%20files/tire%20bushes.STL', color: 0xc0c0c0 }]
             },
             {
-                title: "Step 3: Front Wheel",
-                desc: "1. Click/Drop the Front Wheel and Front Tire Lever.\n2. Click 'Fix Positions' to snap them to the fork.",
+                title: "Step 5",
+                desc: "Then click the Handlebar to place it on the screen.",
+                fixGroup: 1, fixTrigger: false,
+                required: ['tireBush', 'handlebar'],
+                files: [{ slot: 'handlebar', file: 'stl%20files/3.%20Handlebar.STL', color: 0xc0c0c0 }]
+            },
+            {
+                title: "Step 6",
+                desc: "Click the Fix button in the Components tab to secure the handlebar assembly.",
+                fixGroup: 1, fixTrigger: true,
+                required: ['tireBush', 'handlebar'],
+                files: []
+            },
+            // ── Group 2: Front Wheel ──
+            {
+                title: "Step 7",
+                desc: "Click the Front Tire.",
+                fixGroup: 2, fixTrigger: false,
                 required: ['frontWheel', 'frontTireLever'],
-                files: [
-                    { slot: 'frontWheel', file: 'stl%20files/4.%20Rim%20with%20Tire.STL', color: 0x000000 },
-                    { slot: 'frontTireLever', file: 'stl%20files/11.%20back%20tire%20liver%20.STL', color: 0xc0c0c0 }
-                ]
+                files: [{ slot: 'frontWheel', file: 'stl%20files/4.%20Rim%20with%20Tire.STL', color: 0x000000 }]
             },
             {
-                title: "Step 4: Saddle",
-                desc: "1. Click/Drop the Saddle/Seat.\n2. Click 'Fix Positions' to lock it to the frame.",
+                title: "Step 8",
+                desc: "Then click the Front Tire Axle.",
+                fixGroup: 2, fixTrigger: false,
+                required: ['frontWheel', 'frontTireLever'],
+                files: [{ slot: 'frontTireLever', file: 'stl%20files/11.%20back%20tire%20liver%20.STL', color: 0xc0c0c0 }]
+            },
+            {
+                title: "Step 9",
+                desc: "Click the Fix button in the Components tab to attach the front wheel.",
+                fixGroup: 2, fixTrigger: true,
+                required: ['frontWheel', 'frontTireLever'],
+                files: []
+            },
+            // ── Group 3: Saddle ──
+            {
+                title: "Step 10",
+                desc: "Click the Saddle / Seat to place it on the screen.",
+                fixGroup: 3, fixTrigger: false,
                 required: ['seat'],
-                files: [
-                    { slot: 'seat', file: 'stl%20files/7.%20Sadle.STL', color: 0x000000 }
-                ]
+                files: [{ slot: 'seat', file: 'stl%20files/7.%20Sadle.STL', color: 0x000000 }]
             },
             {
-                title: "Step 5: Sprocket",
-                desc: "1. Click/Drop the Sprocket.\n2. Click 'Fix Positions' to attach it to the bottom bracket.",
+                title: "Step 11",
+                desc: "Click the Fix button in the Components tab to secure it.",
+                fixGroup: 3, fixTrigger: true,
+                required: ['seat'],
+                files: []
+            },
+            // ── Group 4: Sprocket ──
+            {
+                title: "Step 12",
+                desc: "Click the Sprocket and place it on the screen.",
+                fixGroup: 4, fixTrigger: false,
                 required: ['pedalSprocket'],
-                files: [
-                    { slot: 'pedalSprocket', file: 'stl%20files/6.%20Sprocket.STL', color: 0xd4af37 }
-                ]
+                files: [{ slot: 'pedalSprocket', file: 'stl%20files/6.%20Sprocket.STL', color: 0xd4af37 }]
             },
             {
-                title: "Step 6: Pedals",
-                desc: "1. Click/Drop the Pedals.\n2. Click 'Fix Positions' to attach them to the sprocket cranks.",
+                title: "Step 13",
+                desc: "Click the Fix button in the Components tab to attach it properly.",
+                fixGroup: 4, fixTrigger: true,
+                required: ['pedalSprocket'],
+                files: []
+            },
+            // ── Group 5: Pedals ──
+            {
+                title: "Step 14",
+                desc: "Click the Pedals and place them on the screen.",
+                fixGroup: 5, fixTrigger: false,
                 required: ['pedalCrank'],
-                files: [
-                    { slot: 'pedalCrank', file: 'stl%20files/8.%20Pedal.STL', color: 0xc0c0c0 }
-                ]
+                files: [{ slot: 'pedalCrank', file: 'stl%20files/8.%20Pedal.STL', color: 0xc0c0c0 }]
             },
             {
-                title: "Step 7: Back Wheel",
-                desc: "1. Click/Drop the Back Wheel and Back Tire Lever.\n2. Click 'Fix Positions' to mount them to the frame's rear.",
+                title: "Step 15",
+                desc: "Click the Fix button in the Components tab to secure them.",
+                fixGroup: 5, fixTrigger: true,
+                required: ['pedalCrank'],
+                files: []
+            },
+            // ── Group 6: Back Wheel ──
+            {
+                title: "Step 16",
+                desc: "Click the Back Wheel.",
+                fixGroup: 6, fixTrigger: false,
                 required: ['backWheel', 'backTireLever'],
-                files: [
-                    { slot: 'backWheel', file: 'stl%20files/5.%20Rim%20with%20Tire.STL', color: 0x000000 },
-                    { slot: 'backTireLever', file: 'stl%20files/11.%20back%20tire%20liver%20.STL', color: 0xc0c0c0 }
-                ]
+                files: [{ slot: 'backWheel', file: 'stl%20files/5.%20Rim%20with%20Tire.STL', color: 0x000000 }]
             },
             {
-                title: "Step 8: Chain",
-                desc: "1. Click/Drop the Chain.\n2. Click 'Fix Positions' to complete the full bicycle assembly!",
+                title: "Step 17",
+                desc: "Then click the Back Wheel Axle.",
+                fixGroup: 6, fixTrigger: false,
+                required: ['backWheel', 'backTireLever'],
+                files: [{ slot: 'backTireLever', file: 'stl%20files/11.%20back%20tire%20liver%20.STL', color: 0xc0c0c0 }]
+            },
+            {
+                title: "Step 18",
+                desc: "Click the Fix button in the Components tab to attach the rear wheel.",
+                fixGroup: 6, fixTrigger: true,
+                required: ['backWheel', 'backTireLever'],
+                files: []
+            },
+            // ── Group 7: Chain ──
+            {
+                title: "Step 19",
+                desc: "Click the Chain to place it on the cycle.",
+                fixGroup: 7, fixTrigger: false,
                 required: ['chain'],
-                files: [
-                    { slot: 'chain', file: 'stl%20files/Chain.STL', color: 0xd4af37 }
-                ]
+                files: [{ slot: 'chain', file: 'stl%20files/Chain.STL', color: 0xd4af37 }]
+            },
+            {
+                title: "Step 20",
+                desc: "Click the Fix button in the Components tab to complete the assembly.\n\n✅ Your cycle assembly is now completed successfully!",
+                fixGroup: 7, fixTrigger: true,
+                required: ['chain'],
+                files: []
             }
         ];
+
+        // Map fixGroup → first visual step index that belongs to it
+        // Used by updateInstructions to determine which visual steps are done/active
+        function getVisualStepForFixGroup(fixGroup) {
+            // The first visual step of a fix group is the one that starts that group
+            return INSTR_DEFS.findIndex(d => d.fixGroup === fixGroup);
+        }
+        // Get the last visual step index for a fix group (the fixTrigger step)
+        function getLastVisualStepForFixGroup(fixGroup) {
+            let last = -1;
+            INSTR_DEFS.forEach((d, i) => { if (d.fixGroup === fixGroup) last = i; });
+            return last;
+        }
 
         // Helper: check if a part is allowed to be imported in the current step
         function isAllowedToImport(slot) {
@@ -801,37 +887,70 @@
                 div.appendChild(title);
                 div.appendChild(desc);
 
-                div.addEventListener('click', () => onInstrClick(def, i));
+                // Instructions are read-only — no click listener attached.
                 list.appendChild(div);
             });
             updateInstructions();
         }
 
+        // Returns true if an individual visual step should be marked done.
+        // Priority: if the whole fix group is already completed (Fix was clicked),
+        //           ALL steps in that group are done — even if the individual meshes
+        //           were cleared from allParts when the progressive STL replaced them.
+        // • Part-click steps  → also done the moment their slot appears on screen.
+        // • Fix-trigger steps → done only after Fix advances past the group.
+        function isVisualStepDone(def) {
+            // Group completed → every step in it is done
+            if (currentFixStep > def.fixGroup) return true;
+
+            if (def.fixTrigger) {
+                // Fix not yet clicked for this group
+                return false;
+            } else {
+                // Part-click step: done if slot is present on screen right now
+                if (!def.files || def.files.length === 0) return false;
+                const presentSlots = new Set(allParts.map(m => m.userData.slot));
+                return def.files.every(f => presentSlots.has(f.slot));
+            }
+        }
+
         function updateInstructions() {
             const isFinalAssembly = allParts.some(m => m.userData.slot === 'assembly') && currentFixStep >= FIX_CONDITIONS.length;
+
+            let firstActiveScrolled = false;
 
             INSTR_DEFS.forEach((def, i) => {
                 const el = document.getElementById('instr-step-' + i);
                 if (!el) return;
 
-                if (i < currentFixStep || isFinalAssembly) {
+                const done = isFinalAssembly || isVisualStepDone(def);
+
+                if (done) {
                     el.className = 'instr-item done';
-                } else if (i === currentFixStep) {
+                } else if (!firstActiveScrolled) {
+                    // First non-done step becomes the active one
                     el.className = 'instr-item active';
                     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    firstActiveScrolled = true;
                 } else {
                     el.className = 'instr-item';
                 }
             });
 
-            const done = isFinalAssembly ? INSTR_DEFS.length : currentFixStep;
-            const pct = Math.round(done / INSTR_DEFS.length * 100);
+            // Progress bar: count individually-done visual steps
+            const totalVisual = INSTR_DEFS.length;
+            const doneVisual = isFinalAssembly
+                ? totalVisual
+                : INSTR_DEFS.filter(def => isVisualStepDone(def)).length;
+            const pct = Math.round(doneVisual / totalVisual * 100);
             const pt = document.getElementById('instr-prog-text');
             const pf = document.getElementById('instr-bar-fill');
-            if (pt) pt.textContent = isFinalAssembly ? `All ${INSTR_DEFS.length} / ${INSTR_DEFS.length} complete ✓` : `Step ${done} / ${INSTR_DEFS.length} complete`;
+            if (pt) pt.textContent = isFinalAssembly
+                ? `All ${totalVisual} / ${totalVisual} complete ✓`
+                : `Step ${doneVisual} / ${totalVisual} complete`;
             if (pf) pf.style.width = pct + '%';
 
-            // Show Fix button when all required parts for current step are present
+            // Show Fix button when all required parts for the current fix-step are present
             const fixBtn = document.getElementById('fix-btn');
             if (fixBtn) {
                 if (currentFixStep < FIX_CONDITIONS.length) {
@@ -846,31 +965,8 @@
         }
 
         function onInstrClick(def, idx) {
-            if (isAssembled()) { showAssemblyLockedToast(); return; }
-            if (idx !== currentFixStep) {
-                if (idx < currentFixStep) {
-                    setStatus('✅ Step ' + (idx + 1) + ' is already completed and fixed!');
-                } else {
-                    setStatus('⚠️ Please complete Step ' + (currentFixStep + 1) + ' first!');
-                }
-                return;
-            }
-
-            // Load any missing parts for this step
-            let loadedAny = false;
-            def.files.forEach(f => {
-                const alreadyAdded = allParts.some(m => m.userData.slot === f.slot);
-                if (!alreadyAdded) {
-                    const fname = f.file.split('/').pop().toLowerCase();
-                    const url = uploadedFiles[fname] || (BASE_URL + f.file);
-                    loadPart(url, f.slot, f.color);
-                    loadedAny = true;
-                }
-            });
-
-            if (!loadedAny) {
-                setStatus('💡 All parts for this step are loaded. Click the green "Fix Positions" button in the left sidebar!');
-            }
+            // Instructions are read-only — clicking does nothing.
+            return;
         }
 
         // ─────────────────────────────────────────────
